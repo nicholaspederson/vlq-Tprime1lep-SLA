@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-targetlumi = 41298. # 1/pb
+targetlumi = 59690. # 1/pb
 
 genHTweight={}
 genHTweight['WJetsMG100'] = 0.998056#https://github.com/jmhogan/GenHTweight/blob/master/WJetsToLNuSFs.txt
