@@ -174,7 +174,7 @@ for file in filelist:
     if 'prime' not in file:
         print(str(adjusted)+'. # from integral '+str(integral)+', file '+file)
     else:
-        print(str(newpdf)+'. # new pdf!, # from integral'+str(integral)+', file'+file)
+        print(str(newpdf)+'. # from integral'+str(integral)+', file'+file)
 
 
 
