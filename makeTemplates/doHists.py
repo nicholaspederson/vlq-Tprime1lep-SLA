@@ -10,21 +10,22 @@ from analyze import *
 from samples import *
 from utils import *
 
+
 gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = 'root://cmseos.fnal.gov//store/user/jmanagan/LJMet94X_1lepTTdnn_042219_step2hadds/nominal'
+step1Dir = 'root://cmseos.fnal.gov//store/user/cholz/FWLJMET102X_1lep2018Dnn_070219_step1hadds'
 
 iPlot = 'HT' #minMlb' #choose a discriminant from plotList below!
 if len(sys.argv)>2: iPlot=sys.argv[2]
-region = 'TTCR'
+region = 'PS'
 if len(sys.argv)>3: region=sys.argv[3]
-isCategorized = True
+isCategorized = False
 if len(sys.argv)>4: isCategorized=int(sys.argv[4])
 doJetRwt= 1
 doTopRwt= 0
-doAllSys= False
+doAllSys= True
 cTime=datetime.datetime.now()
 datestr='%i_%i_%i'%(cTime.year,cTime.month,cTime.day)
 timestr='%i_%i_%i'%(cTime.hour,cTime.minute,cTime.second)
@@ -44,37 +45,31 @@ where <shape> is for example "JECUp". hadder.py can be used to prepare input fil
 """
 
 bkgList = [
-	'DYMG','WJetsMG400','WJetsMG600','WJetsMG800','WJetsMG1200','WJetsMG2500',
+	'DYMG200','DYMG400','DYMG600','DYMG800','DYMG1200','DYMG2500','WJetsMG200','WJetsMG400','WJetsMG600','WJetsMG800','WJetsMG1200','WJetsMG2500',
 	'TTJetsHad0','TTJetsHad700','TTJetsHad1000','TTJetsSemiLep0','TTJetsSemiLep700','TTJetsSemiLep1000','TTJets2L2nu0','TTJets2L2nu700','TTJets2L2nu1000',
-	'TTJetsPH700mtt','TTJetsPH1000mtt','Ts','Tbs','Tt','Tbt','TtW','TbtW','TTW','TTZ','TTH',
-	'WW','WZ','ZZ',
-	'QCDht300','QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000'
+	'TTJetsPH700mtt','TTJetsPH1000mtt','Ts','Tt','Tbt','TtW','TbtW','TTWl','TTZl',
+	'WW','WZ','ZZ','ttHToNonbb','ttHTobb',
+	'QCDht200','QCDht300','QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000'
 	]
 
 dataList = [
-	'DataERRBCDEF',
-	'DataMRRBCDEF',
+	'DataEABCD',
+	'DataMABCD',
 	#'Data18EG',
 	#'Data18MU',
 	]
 
 whichSignal = 'TT' #HTB, TT, BB, or X53X53
-massList = range(1000,1800+1,100)
+#massList = range(1000,1800+1,100)
+massList = [1000, 1600, 1700]
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
 if whichSignal=='TT': decays = ['BWBW','THTH','TZTZ','TZBW','THBW','TZTH'] #T' decays
-if whichSignal=='BB': 
-	decays = ['TWTW','BHBH','BZBZ','BZTW','BHTW','BZBH'] #B' decays
-	sigList.remove('BBM1700')
-if whichSignal=='X53X53': decays = [''] #decays to tWtW 100% of the time
-if whichSignal=='HTB': decays = ['']
+if whichSignal=='BB': decays = ['TWTW','BHBH','BZBZ','BZTW','BHTW','BZBH'] #B' decays
 
 cutList = {'lepPtCut':55,'metCut':50,'nAK8Cut':3,'dnnCut':0.50,'HTCut':510} ## also requires mass reco worked
 if 'CR' in region :cutList = {'lepPtCut':55,'metCut':50,'nAK8Cut':3,'dnnCut':0.50,'HTCut':510} 
 if 'PS' in region :cutList = {'lepPtCut':55,'metCut':50,'nAK8Cut':0,'dnnCut':0.0,'HTCut':510} ## most basic
-if 'NoDR' in region: cutList = {'lepPtCut':55,'metCut':50,'nAK8Cut':2,'dnnCut':0.0,'HTCut':510} ## not used anymore
-
-cutString  = ''
 		
 if len(sys.argv)>5: isEMlist=[str(sys.argv[5])]
 else: isEMlist = ['E','M']
@@ -86,53 +81,6 @@ if len(sys.argv)>7: algolist=[str(sys.argv[7])]
 else: 
 	algolist = ['all']
 	if isCategorized or 'algos' in region: algolist = ['DeepAK8']
-
-def readTree(file,shift):
-	if not EOSpathExists(file[23:]): 
-		print "Error: File does not exist! Aborting ...",file[23:]
-		os._exit(1)
-	tFile = TFile.Open(file,'READ')
-	tTree = tFile.Get('ljmet_'+shift)
-	return tFile, tTree 
-
-def readTreeOnly(file,shift):
-	tTree = tFile.Get('ljmet_'+shift)
-	return tTree
-
-print "READING TREES"
-shapesFiles = ['jec','jer','btag','ltag']
-tTreeData = {}
-tFileData = {}
-for data in dataList:
-	print "READING:", data
-	tFileData[data],tTreeData[data]=readTree(step1Dir+'/'+samples[data]+'_hadd.root')
-
-tTreeSig = {}
-tFileSig = {}
-for sig in sigList:
-	for decay in decays:
-		print "READING:", sig+decay
-		print "        nominal"
-		tFileSig[sig+decay],tTreeSig[sig+decay]=readTree(step1Dir+'/'+samples[sig+decay]+'_hadd.root')
-		if doAllSys:
-			for syst in shapesFiles:
-				for ud in ['Up','Down']:
-					print "        "+syst+ud
-					tTreeSig[sig+decay+syst+ud]=readTreeOnly(tFileSig[sig+decay],syst.upper()+ud.lower())
-
-tTreeBkg = {}
-tFileBkg = {}
-for bkg in bkgList:
-	print "READING:",bkg
-	print "        nominal"
-	print step1Dir+'/'+samples[bkg]+'_hadd.root'
-	tFileBkg[bkg],tTreeBkg[bkg]=readTree(step1Dir+'/'+samples[bkg]+'_hadd.root')
-	if doAllSys:
-		for syst in shapesFiles:
-			for ud in ['Up','Down']:
-      			       	print "        "+syst+ud
-		       		tTreeBkg[bkg+syst+ud]=readTreeOnly(tFileBkg[bkg],syst.upper()+ud.lower())
-print "FINISHED READING"
 
 #bigbins = [0,50,100,150,200,250,300,350,400,450,500,600,700,800,1000,1200,1500]
 bigbins = [0,50,100,125,150,175,200,225,250,275,300,325,350,375,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2500,3000,3500,4000,5000]
@@ -163,6 +111,20 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
         'Tp2Phi':('Tprime2_DeepAK8_Phi',linspace(-3.14,3.14,51).tolist(),';T quark #phi'),
         'Tp1deltaR':('Tprime1_DeepAK8_deltaR',linspace(0,5,51).tolist(),';#DeltaR(T quark product jets)'),
         'Tp2deltaR':('Tprime2_DeepAK8_deltaR',linspace(0,5,51).tolist(),';#DeltaR(T quark product jets)'),
+
+        'Bp1Mass':('Bprime1_DeepAK8_Mass',linspace(0,4000,51).tolist(),';M(B) [GeV]'), ## replace with ALGO if needed
+        'Bp2Mass':('Bprime2_DeepAK8_Mass',linspace(0,4000,nbins).tolist(),';M(B) [GeV]'),
+        'Bp2MDnn':('Bprime2_DeepAK8_Mass',linspace(0,4000,nbins).tolist(),';M(B) [GeV]'), #analyze.py makes notV DnnBprime
+        'Bp2MST':('Bprime2_DeepAK8_Mass',linspace(0,4000,nbins).tolist(),';M(B) [GeV]'), #analyze.py makes notV ST
+        'Bp1Pt':('Bprime1_DeepAK8_Pt',linspace(0,3000,51).tolist(),';B quark p_{T} [GeV]'),
+        'Bp2Pt':('Bprime2_DeepAK8_Pt',linspace(0,3000,51).tolist(),';B quark p_{T} [GeV]'),
+        'Bp1Eta':('Bprime1_DeepAK8_Eta',linspace(-5,5,51).tolist(),';B quark #eta'),
+        'Bp2Eta':('Bprime2_DeepAK8_Eta',linspace(-5,5,51).tolist(),';B quark #eta'),
+        'Bp1Phi':('Bprime1_DeepAK8_Phi',linspace(-3.14,3.14).tolist(),';B quark #phi'),
+        'Bp2Phi':('Bprime2_DeepAK8_Phi',linspace(-3.14,3.14,51).tolist(),';B quark #phi'),
+        'Bp1deltaR':('Bprime1_DeepAK8_deltaR',linspace(0,5,51).tolist(),';#DeltaR(B quark product jets)'),
+        'Bp2deltaR':('Bprime2_DeepAK8_deltaR',linspace(0,5,51).tolist(),';#DeltaR(B quark product jets)'),
+
 	'DnnTprime':('dnn_Tprime',linspace(0,1,nbins).tolist(),';DNN VLQ score'),
 	'DnnTTbar':('dnn_ttbar',linspace(0,1,51).tolist(),';DNN t#bar{t} score'),
 	'DnnWJets':('dnn_WJets',linspace(0,1,51).tolist(),';DNN W+jets score'),
@@ -252,12 +214,58 @@ print "         LJMET Variable:",plotList[iPlot][0]
 print "         X-AXIS TITLE  :",plotList[iPlot][2]
 print "         BINNING USED  :",plotList[iPlot][1]
 
+def readTree(file):
+	if not EOSpathExists(file[23:]): 
+		print "Error: File does not exist! Aborting ...",file[23:]
+		os._exit(1)
+	tFile = TFile.Open(file,'READ')
+	tTree = tFile.Get('ljmet')
+	return tFile, tTree 
+
+def readFileOnly(file):
+	if not EOSpathExists(file[23:]): 
+		print "Error: File does not exist! Aborting ...",file[23:]
+		os._exit(1)
+	tFile = TFile.Open(file,'READ')
+	return tFile
+
+def readTreeNominal(file):	
+	tTree = file.Get('ljmet')
+	return tTree
+
+def readTreeShift(file,shift):	
+	tTree = file.Get('ljmet_'+shift)
+	return tTree
+
+print "READING TREES"
+shapesFiles = ['jec','jer','btag','ltag']
+tTreeData = {}
+tFileData = {}
+for data in dataList:
+	print "READING:", data
+	tFileData[data]=readFileOnly(step1Dir+'/'+samples[data]+'_hadd.root')
+
+tTreeSig = {}
+tFileSig = {}
+for sig in sigList:
+	for decay in decays:
+		print "READING:", sig+decay
+		tFileSig[sig+decay]=readFileOnly(step1Dir+'/'+samples[sig+decay]+'_hadd.root')
+
+tTreeBkg = {}
+tFileBkg = {}
+for bkg in bkgList:
+	print "READING:",bkg
+	tFileBkg[bkg]=readFileOnly(step1Dir+'/'+samples[bkg]+'_hadd.root')
+
+print "FINISHED READING FILES"
+
 catList = list(itertools.product(isEMlist,taglist,algolist))
 print 'Cat list:',catList
 nCats  = len(catList)
 catInd = 1
 for cat in catList:
-	print 'Category:',cat
+	print '==================== Category:',cat,'======================'
  	catDir = cat[0]+'_'+cat[1]+'_'+cat[2]
  	datahists = {}
  	bkghists  = {}
@@ -272,24 +280,50 @@ for cat in catList:
 		outDir+='/'+catDir
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
  	category = {'isEM':cat[0],'tag':cat[1],'algo':cat[2]}
+
 	print 'Running analyze'
  	for data in dataList: 
+		print '-------------------------'
+		tTreeData[data]=readTreeNominal(tFileData[data])
  		datahists.update(analyze(tTreeData,data,cutList,False,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
- 		if catInd==nCats: del tFileData[data]
+ 		if catInd==nCats: 
+			print 'deleting',data
+			del tFileData[data]
+			del tTreeData[data]
  	for bkg in bkgList: 
-		#print bkg,bkghists
+		print '-------------------------'
+		tTreeBkg[bkg]=readTreeNominal(tFileBkg[bkg])
+		if doAllSys:
+			for syst in shapesFiles:
+				for ud in ['Up','Down']:
+					print "        "+syst+ud
+					tTreeBkg[bkg+syst+ud]=readTreeShift(tFileBkg[bkg],syst.upper()+ud.lower())
  		bkghists.update(analyze(tTreeBkg,bkg,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
- 		if catInd==nCats: del tFileBkg[bkg]
- 		if doAllSys and catInd==nCats:
- 			for syst in shapesFiles:
- 				for ud in ['Up','Down']: del tFileBkg[bkg+syst+ud]
+ 		if catInd==nCats:
+			print 'deleting',bkg
+			del tFileBkg[bkg]
+			del tTreeBkg[bkg]
+			if doAllSys:
+				for syst in shapesFiles:
+					for ud in ['Up','Down']: del tTreeBkg[bkg+syst+ud]
+
  	for sig in sigList: 
  	 	for decay in decays: 
+			print '-------------------------'
+			tTreeSig[sig+decay]=readTreeNominal(tFileSig[sig+decay])
+			if doAllSys:
+				for syst in shapesFiles:
+					for ud in ['Up','Down']:
+						print "        "+syst+ud
+						tTreeSig[sig+decay+syst+ud]=readTreeShift(tFileSig[sig+decay],syst.upper()+ud.lower())
  	 		sighists.update(analyze(tTreeSig,sig+decay,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
- 	 		if catInd==nCats: del tFileSig[sig+decay]
- 	 		if doAllSys and catInd==nCats:
- 	 			for syst in shapesFiles:
- 	 				for ud in ['Up','Down']: del tFileSig[sig+decay+syst+ud]
+ 	 		if catInd==nCats: 
+				print 'deleting',sig+decay
+				del tFileSig[sig+decay]
+				del tTreeSig[sig+decay]
+				if doAllSys:
+					for syst in shapesFiles:
+						for ud in ['Up','Down']: del tTreeSig[sig+decay+syst+ud]
 
  	#Negative Bin Correction
 	for bkg in bkghists.keys(): negBinCorrection(bkghists[bkg])
