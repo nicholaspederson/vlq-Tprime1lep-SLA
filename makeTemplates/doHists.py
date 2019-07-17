@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
+
 import os,sys,time,math,datetime,pickle,itertools,getopt
 from ROOT import TH1D,gROOT,TFile,TTree
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
 from numpy import linspace
+
 from weights import *
 from analyze import *
 from samples import *
@@ -15,7 +17,7 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = 'root://cmseos.fnal.gov//store/user/cholz/FWLJMET102X_1lep2018Dnn_070219_step1hadds'
+step1Dir = 'root://cmseos.fnal.gov//store/user/cholz/FWLJMET102X_1lep2018Dnn_071519_step1hadds'
 
 iPlot = 'HT' #minMlb' #choose a discriminant from plotList below!
 if len(sys.argv)>2: iPlot=sys.argv[2]
@@ -47,7 +49,7 @@ where <shape> is for example "JECUp". hadder.py can be used to prepare input fil
 bkgList = [
 	'DYMG200','DYMG400','DYMG600','DYMG800','DYMG1200','DYMG2500','WJetsMG200','WJetsMG400','WJetsMG600','WJetsMG800','WJetsMG1200','WJetsMG2500',
 	'TTJetsHad0','TTJetsHad700','TTJetsHad1000','TTJetsSemiLep0','TTJetsSemiLep700','TTJetsSemiLep1000','TTJets2L2nu0','TTJets2L2nu700','TTJets2L2nu1000',
-	'TTJetsPH700mtt','TTJetsPH1000mtt','Ts','Tt','Tbt','TtW','TbtW','TTWl','TTZl',
+	'TTJetsPH700mtt','TTJetsPH1000mtt','Ts','Tbt','Tt','TtW','TbtW','TTWl','TTZl',
 	'WW','WZ','ZZ','ttHToNonbb','ttHTobb',
 	'QCDht200','QCDht300','QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000'
 	]
@@ -61,7 +63,7 @@ dataList = [
 
 whichSignal = 'TT' #HTB, TT, BB, or X53X53
 #massList = range(1000,1800+1,100)
-massList = [1000, 1600, 1700]
+massList = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
 if whichSignal=='TT': decays = ['BWBW','THTH','TZTZ','TZBW','THBW','TZTH'] #T' decays
@@ -94,8 +96,8 @@ if isCategorized and 'SR' in region:
 plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
         'tmass':('t_mass',linspace(0,500,51).tolist(),';M(t) [GeV]'),
         'Wmass':('W_mass',linspace(0,250,51).tolist(),';M(W) [GeV]'),
-        'tpt':('t_pt',linspace(0,1000,51).tolist(),';M(t) [GeV]'),
-        'Wpt':('W_pt',linspace(0,1000,51).tolist(),';M(W) [GeV]'),
+        'tpt':('t_pt',linspace(0,1000,51).tolist(),';top pt [GeV]'),
+        'Wpt':('W_pt',linspace(0,1000,51).tolist(),';W Boson pt [GeV]'),
         'Wdrlep':('W_dRLep',linspace(0,5,51).tolist(),';leptonic W, #DeltaR(W,lepton)'),
         'tdrWb':('t_dRWb',linspace(0,5,51).tolist(),';leptonic t, #DeltaR(W,b)'),
 	'isLepW':('isLeptonic_W',linspace(0,2,3).tolist(),';lepton from W'),
@@ -145,13 +147,13 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
 
 	'deltaRAK8':('minDR_leadAK8otherAK8',linspace(0,5,51).tolist(),';min #DeltaR(1^{st} AK8 jet, other AK8 jet)'),
 	'minDRlepAK8':('minDR_lepAK8',linspace(0,5,51).tolist(),';min #DeltaR(l, AK8 jet)'),
-	'minDPhiMetJet':('minDPhi_MetJet',linspace(-3.2,3.2,33).tolist(),':min #Delta#phi(MET, AK4 jet)'),
+	'minDPhiMetJet':('minDPhi_MetJet',linspace(-3.2,3.2,33).tolist(),';min #Delta#phi(MET, AK4 jet)'),
 	'MTlmet':('MT_lepMet',linspace(0,250,51).tolist(),';M_{T}(l,#slash{E}_{T}) [GeV]'),
 	'MTlmetmod':('MT_lepMetmod',linspace(0,250,51).tolist(),';M_{T}(l,mod #slash{E}_{T}) [GeV]'),
-	'NPV'   :('nPV_singleLepCalc',linspace(0, 100, 101).tolist(),';PV multiplicity;'),
-	'NTrue'   :('nTrueInteractions_singleLepCalc',linspace(0, 100, 101).tolist(),';MC pileup multiplicity;'),
-	'lepPt' :('leptonPt_singleLepCalc',linspace(0, 1000, 51).tolist(),';Lepton p_{T} [GeV];'),
-	'lepEta':('leptonEta_singleLepCalc',linspace(-4, 4, 41).tolist(),';Lepton #eta;'),
+	'NPV'   :('nPV_MultiLepCalc',linspace(0, 100, 101).tolist(),';PV multiplicity;'),
+	'NTrue'   :('nTrueInteractions_MultiLepCalc',linspace(0, 100, 101).tolist(),';MC pileup multiplicity;'),
+	'lepPt' :('leptonPt_MultiLepCalc',linspace(0, 1000, 51).tolist(),';Lepton p_{T} [GeV];'),
+	'lepEta':('leptonEta_MultiLepCalc',linspace(-4, 4, 41).tolist(),';Lepton #eta;'),
 	'JetEta':('theJetEta_JetSubCalc_PtOrdered',linspace(-4, 4, 41).tolist(),';AK4 Jet #eta;'),
 	'JetPt' :('theJetPt_JetSubCalc_PtOrdered',linspace(0, 1500, 51).tolist(),';jet p_{T} [GeV];'),
 	'Jet1Pt':('theJetPt_JetSubCalc_PtOrdered[0]',linspace(0, 1500, 51).tolist(),';1^{st} AK4 Jet p_{T} [GeV];'),
@@ -161,8 +163,8 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
 	'Jet4Pt':('theJetPt_JetSubCalc_PtOrdered[3]',linspace(0, 500, 51).tolist(),';4^{th} AK4 Jet p_{T} [GeV];'),
 	'Jet5Pt':('theJetPt_JetSubCalc_PtOrdered[4]',linspace(0, 500, 51).tolist(),';5^{th} AK4 Jet p_{T} [GeV];'),
 	'Jet6Pt':('theJetPt_JetSubCalc_PtOrdered[5]',linspace(0, 500, 51).tolist(),';6^{th} AK4 Jet p_{T} [GeV];'),
-	'MET'   :('corr_met_singleLepCalc',linspace(0, 1500, 51).tolist(),';#slash{E}_{T} [GeV];'),
-	'METmod'   :('corr_metmod_singleLepCalc',linspace(0, 1500, 51).tolist(),';modified #slash{E}_{T} [GeV];'),
+	'MET'   :('corr_met_MultiLepCalc',linspace(0, 1500, 51).tolist(),';#slash{E}_{T} [GeV];'),
+	'METmod'   :('corr_metmod_MultiLepCalc',linspace(0, 1500, 51).tolist(),';modified #slash{E}_{T} [GeV];'),
 	'NJets' :('NJets_JetSubCalc',linspace(0, 15, 16).tolist(),';jet multiplicity;'),
 	'NBJets':('NJetsCSVwithSF_JetSubCalc',linspace(0, 10, 11).tolist(),';b tag multiplicity;'),
 	'NBJetsNoSF':('NJetsCSV_JetSubCalc',linspace(0, 10, 11).tolist(),';b tag multiplicity;'),
@@ -189,9 +191,9 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
 	'deltaRjet2':('deltaR_lepJets[1]',linspace(0, 5, 51).tolist(),';#DeltaR(l, 2^{nd} jet);'),
 	'deltaRjet3':('deltaR_lepJets[2]',linspace(0, 5, 51).tolist(),';#DeltaR(l, 3^{rd} jet);'),
 	'nLepGen':('NLeptonDecays_TpTpCalc',linspace(0,10,11).tolist(),';N lepton decays from TT'),
-	'METphi':('corr_met_phi_singleLepCalc',linspace(-3.2,3.2,65).tolist(),';#phi(#slash{E}_{T})'),
-	'lepPhi':('leptonPhi_singleLepCalc',linspace(-3.2,3.2,65).tolist(),';#phi(l)'),
-	'lepIso':('leptonMiniIso_singleLepCalc',linspace(0,0.2,51).tolist(),';lepton mini isolation'),
+	'METphi':('corr_met_phi_MultiLepCalc',linspace(-3.2,3.2,65).tolist(),';#phi(#slash{E}_{T})'),
+	'lepPhi':('leptonPhi_MultiLepCalc',linspace(-3.2,3.2,65).tolist(),';#phi(l)'),
+	'lepIso':('leptonMiniIso_MultiLepCalc',linspace(0,0.2,51).tolist(),';lepton mini isolation'),
 	'Tau1':('theJetAK8NjettinessTau1_JetSubCalc_PtOrdered',linspace(0,1,51).tolist(),';AK8 Jet #tau_{1}'),
 	'Tau2':('theJetAK8NjettinessTau2_JetSubCalc_PtOrdered',linspace(0,1,51).tolist(),';AK8 Jet #tau_{2}'),
 	'Tau3':('theJetAK8NjettinessTau3_JetSubCalc_PtOrdered',linspace(0,1,51).tolist(),';AK8 Jet #tau_{3}'),
@@ -243,19 +245,19 @@ for cat in catList:
 	print 'Running analyze'
  	for data in dataList: 
 		print '-------------------------'
-		tTreeData[data]=readTreeNominal(samples[data]) ## located in utils.py
+		tTreeData[data]=readTreeNominal(samples[data],step1Dir) ## located in utils.py
  		datahists.update(analyze(tTreeData,data,cutList,False,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  		if catInd==nCats: 
 			print 'deleting',data
 			del tTreeData[data]
  	for bkg in bkgList: 
 		print '-------------------------'
-		tTreeBkg[bkg]=readTreeNominal(samples[bkg])
+		tTreeBkg[bkg]=readTreeNominal(samples[bkg],step1Dir)
 		if doAllSys:
 			for syst in shapesFiles:
 				for ud in ['Up','Down']:
 					print "        "+syst+ud
-					tTreeBkg[bkg+syst+ud]=readTreeShift(samples[bkg],syst.upper()+ud.lower()) ## located in utils.py
+					tTreeBkg[bkg+syst+ud]=readTreeShift(samples[bkg],syst.upper()+ud.lower(),step1Dir) ## located in utils.py
  		bkghists.update(analyze(tTreeBkg,bkg,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  		if catInd==nCats:
 			print 'deleting',bkg
@@ -267,12 +269,12 @@ for cat in catList:
  	for sig in sigList: 
  	 	for decay in decays: 
 			print '-------------------------'
-			tTreeSig[sig+decay]=readTreeNominal(samples[sig+decay])
+			tTreeSig[sig+decay]=readTreeNominal(samples[sig+decay],step1Dir)
 			if doAllSys:
 				for syst in shapesFiles:
 					for ud in ['Up','Down']:
 						print "        "+syst+ud
-						tTreeSig[sig+decay+syst+ud]=readTreeShift(samples[sig+decay],syst.upper()+ud.lower())
+						tTreeSig[sig+decay+syst+ud]=readTreeShift(samples[sig+decay],syst.upper()+ud.lower(),step1Dir)
  	 		sighists.update(analyze(tTreeSig,sig+decay,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  	 		if catInd==nCats: 
 				print 'deleting',sig+decay
