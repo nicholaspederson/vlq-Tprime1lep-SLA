@@ -5,35 +5,36 @@ if thisDir[-13:] == 'makeTemplates': runDir = thisDir[:-13]
 else: runDir = thisDir
 if os.getcwd()[-17:] == 'singleLepAnalyzer': os.chdir(os.getcwd()+'/makeTemplates/')
 outputDir = thisDir+'/'
-region='PS' #PS,SR,TTCR,WJCR
-categorize=0 #1==categorize into t/W/b/j, 0==only split into flavor
+region='SR' #PS,SR,TTCR,WJCR,CR
+categorize=1 #1==categorize into t/W/b/j, 0==only split into flavor
 
 cTime=datetime.datetime.now()
 date='%i_%i_%i'%(cTime.year,cTime.month,cTime.day)
 time='%i_%i_%i'%(cTime.hour,cTime.minute,cTime.second)
 pfix = 'templates'+region
 if not categorize: pfix='kinematics'+region
-pfix+='_HighPU'
+pfix+='_July2019_With_Uncertainties'
 
 iPlotList = [#distribution name as defined in "doHists.py"
-	#'ST',
-	#'Tp2Mass',
-	#'Tp2MDnn',
-	#'Tp2MST',
-	#'DnnTprime',
-	#'HT',
+      ###For signal region templates
+        'ST',
+	'Tp2Mass',
+	'Tp2MDnn',
+	'Tp2MST',
+	'DnnTprime',
+#	'HT',
 
 	### Require 3 AK8s
-	# 'Tp2Mass',
-        # 'Tp1Mass',
-        # 'Tp2Pt',
-        # 'Tp1Pt',
-        # 'Tp1Eta',
-        # 'Tp2Eta',
-        # 'Tp1Phi',
-        # 'Tp2Phi',
-        # 'Tp1deltaR',
-        # 'Tp2deltaR',
+#	 'Tp2Mass',
+#         'Tp1Mass',
+#         'Tp2Pt',
+#         'Tp1Pt',
+#         'Tp1Eta',
+#         'Tp2Eta',
+#         'Tp1Phi',
+#         'Tp2Phi',
+#         'Tp1deltaR',
+#         'Tp2deltaR',
 
         # 'probSumDecay',  	###Don't require 3 AK8s
         # 'probSumFour',
@@ -50,42 +51,40 @@ iPlotList = [#distribution name as defined in "doHists.py"
 	# 'nW', 
 	# 'nZ',
 	
-	# #Not algorithm dependent
-	'DnnTprime',
-	'DnnWJets',
-	'DnnTTbar',
-	# 'tmass',
-        # 'Wmass',
-	# 'tpt',
-	# 'Wpt',
-	# 'tdrWb',
-	# 'Wdrlep',	
-	# 'isLepW',
-	'HT',
-	'ST',
-	'JetPt', 
-	'MET',   
-	'NJets', 
-	'NBJets',
-	'NJetsAK8',
-	'JetPtAK8',
-	'lepPt', 
-	# 'SoftDrop',
-	# 'deltaRAK8',
-	# 'minMlj',
-	# 'mindeltaR',
-	# 'PtRel',
-	# 'mindeltaRAK8',
-	# 'PtRelAK8',
-	'lepEta',
-	'lepIso',
-	'JetEta',
-	'JetEtaAK8',
-	'NPV',   
-	# 'NTrue',
-	# 'minMlb',
-	# 'METmod',
-	# 'minDPhiMetJet',
+	 #Not algorithm dependent
+#	'DnnTprime',
+#	'DnnWJets',
+#	'DnnTTbar',
+#        'tmass',
+#        'Wmass',
+#	'tpt',
+#	'Wpt',
+#	'tdrWb',
+#	'Wdrlep',	
+#	'isLepW',
+#	'HT',
+#	'ST',
+#	'JetPt', 
+#	'MET',   
+#	'NJets', 
+#	'NBJets',
+#	'NJetsAK8',
+#	'JetPtAK8',
+#	'lepPt', 
+#	'SoftDrop',
+#	'deltaRAK8',
+#	'minMlj',
+#	'mindeltaR',
+#	'PtRel',
+#	'mindeltaRAK8',
+#	'PtRelAK8',
+#	'lepEta',
+#	'lepIso',
+#	'JetEta',
+#	'JetEtaAK8',   
+#	'NTrue',
+#	'minMlb',
+#	'minDPhiMetJet',
 
 	### Not plotting for now
 	# 'Tau21Nm1',
@@ -171,7 +170,7 @@ if categorize:
 
 outDir = outputDir+pfix+'/'
 if not os.path.exists(outDir): os.system('mkdir '+outDir)
-os.system('cp ../analyze.py doHists.py ../weights.py ../samples.py doCondorTemplates.py doCondorTemplates.sh '+outDir+'/')
+os.system('cp ../analyze.py doHists.py ../weights.py ../samples.py doCondorTemplates.py doCondorTemplates.sh ../utils.py '+outDir+'/')
 os.chdir(outDir)
 
 catlist = list(itertools.product(isEMlist,taglist,algolist))
@@ -194,7 +193,7 @@ universe = vanilla
 Executable = %(rundir)s/makeTemplates/doCondorTemplates.sh
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
-Transfer_Input_Files = %(rundir)s/analyze.py, %(rundir)s/samples.py, %(rundir)s/utils.py, %(rundir)s/weights.py, %(rundir)s/makeTemplates/doHists.py
+Transfer_Input_Files = ../analyze.py, ../samples.py, ../utils.py, ../weights.py, ../doHists.py
 Output = condor_%(iPlot)s.out
 Error = condor_%(iPlot)s.err
 Log = condor_%(iPlot)s.log
