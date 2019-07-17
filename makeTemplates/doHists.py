@@ -17,7 +17,7 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = 'root://cmseos.fnal.gov//store/user/cholz/FWLJMET102X_1lep2018Dnn_070219_step1hadds'
+step1Dir = 'root://cmseos.fnal.gov//store/user/cholz/FWLJMET102X_1lep2018Dnn_071519_step1hadds'
 
 iPlot = 'HT' #minMlb' #choose a discriminant from plotList below!
 if len(sys.argv)>2: iPlot=sys.argv[2]
@@ -27,7 +27,7 @@ isCategorized = False
 if len(sys.argv)>4: isCategorized=int(sys.argv[4])
 doJetRwt= 1
 doTopRwt= 0
-doAllSys= False
+doAllSys= True
 cTime=datetime.datetime.now()
 datestr='%i_%i_%i'%(cTime.year,cTime.month,cTime.day)
 timestr='%i_%i_%i'%(cTime.hour,cTime.minute,cTime.second)
@@ -63,7 +63,7 @@ dataList = [
 
 whichSignal = 'TT' #HTB, TT, BB, or X53X53
 #massList = range(1000,1800+1,100)
-massList = [1000, 1600, 1700]
+massList = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
 if whichSignal=='TT': decays = ['BWBW','THTH','TZTZ','TZBW','THBW','TZTH'] #T' decays
@@ -245,19 +245,19 @@ for cat in catList:
 	print 'Running analyze'
  	for data in dataList: 
 		print '-------------------------'
-		tTreeData[data]=readTreeNominal(samples[data]) ## located in utils.py
+		tTreeData[data]=readTreeNominal(samples[data],step1Dir) ## located in utils.py
  		datahists.update(analyze(tTreeData,data,cutList,False,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  		if catInd==nCats: 
 			print 'deleting',data
 			del tTreeData[data]
  	for bkg in bkgList: 
 		print '-------------------------'
-		tTreeBkg[bkg]=readTreeNominal(samples[bkg])
+		tTreeBkg[bkg]=readTreeNominal(samples[bkg],step1Dir)
 		if doAllSys:
 			for syst in shapesFiles:
 				for ud in ['Up','Down']:
 					print "        "+syst+ud
-					tTreeBkg[bkg+syst+ud]=readTreeShift(samples[bkg],syst.upper()+ud.lower()) ## located in utils.py
+					tTreeBkg[bkg+syst+ud]=readTreeShift(samples[bkg],syst.upper()+ud.lower(),step1Dir) ## located in utils.py
  		bkghists.update(analyze(tTreeBkg,bkg,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  		if catInd==nCats:
 			print 'deleting',bkg
@@ -269,12 +269,12 @@ for cat in catList:
  	for sig in sigList: 
  	 	for decay in decays: 
 			print '-------------------------'
-			tTreeSig[sig+decay]=readTreeNominal(samples[sig+decay])
+			tTreeSig[sig+decay]=readTreeNominal(samples[sig+decay],step1Dir)
 			if doAllSys:
 				for syst in shapesFiles:
 					for ud in ['Up','Down']:
 						print "        "+syst+ud
-						tTreeSig[sig+decay+syst+ud]=readTreeShift(samples[sig+decay],syst.upper()+ud.lower())
+						tTreeSig[sig+decay+syst+ud]=readTreeShift(samples[sig+decay],syst.upper()+ud.lower(),step1Dir)
  	 		sighists.update(analyze(tTreeSig,sig+decay,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  	 		if catInd==nCats: 
 				print 'deleting',sig+decay
