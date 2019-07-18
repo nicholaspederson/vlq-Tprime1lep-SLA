@@ -11,7 +11,7 @@ from utils import *
 gROOT.SetBatch(1)
 start_time = time.time()
 
-lumi=41.5 #for plots #56.1 #
+lumi=59.7 #for plots #56.1 #
 lumiInTemplates= str(targetlumi/1000).replace('.','p') # 1/fb
 
 iPlot='dnnLargest'
@@ -29,13 +29,15 @@ templateDir=os.getcwd()+'/'+pfix+'/'
 print 'Plotting',region,'is categorized?',isCategorized
 
 isRebinned=''#_rebinned_stat0p3' #post for ROOT file names
-BRstr=''#bW0p5_tZ0p25_tH0p25_' 
+if len(sys.argv) > 7: isRebinned = '_rebinned_stat'+str(sys.argv[7]) 
+BRstr=''
+if isCategorized: BRstr='bW0p5_tZ0p25_tH0p25_' 
 saveKey = '' # tag for plot names
 
-sig1='TTM1200' #  choose the 1st signal to plot
-sig1leg='T#bar{T} (1.2 TeV)'
-sig2='TTM1500' #  choose the 2nd signal to plot
-sig2leg='T#bar{T} (1.5 TeV)'
+sig1='TTM1000' #  choose the 1st signal to plot
+sig1leg='T#bar{T} (1.0 TeV)'
+sig2='TTM1600' #  choose the 2nd signal to plot
+sig2leg='T#bar{T} (1.6 TeV)'
 drawNormalized = False # STACKS CAN'T DO THIS...bummer
 scaleSignals = True
 if not isCategorized and 'CR' not in region: scaleSignals = True
@@ -51,10 +53,11 @@ if '53' in sig1: bkgHistColors = {'top':kRed-9,'ewk':kBlue-7,'qcd':kOrange-5} #X
 elif 'HTB' in sig1: bkgHistColors = {'ttbar':kGreen-3,'wjets':kPink-4,'top':kAzure+8,'ewk':kMagenta-2,'qcd':kOrange+5} #HTB
 else: bkgHistColors = {'top':kAzure+8,'ewk':kMagenta-2,'qcd':kOrange+5} #TT
 
-#systematicList = ['pileup','prefire','jec','muRFcorrdNewTop','muRFcorrdNewEwk','muRFcorrdNewQCD','toppt','btag','jsf']
-systematicList = ['muRFcorrd','pileup','prefire','jsf','jec','btag','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis']
+if len(isRebinned)>0: systematicList = ['muRFcorrdNewTop','muRFcorrNewEwk','muRFcorrNewQCD','pileup','jec','btag','jsf','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag']
+else: systematicList = ['muRFcorrd','pileup','jec','btag','jsf','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag']
+#systematicList = ['muRFcorrd','pileup','jec','btag']
 
-doAllSys = False
+doAllSys = True
 addCRsys = False
 doNormByBinWidth=False
 doOneBand = True
@@ -79,7 +82,7 @@ if 'algos' in region or 'SR' in region or isCategorized:
 taglist = ['all']
 if isCategorized == True: 
 	taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notV','notVtH','notVtZ','notVbW']
-	if 'Counts' in pfix: taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW',
+	if 'NO' in pfix: taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW',
 					'notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
 	#isEMlist = ['L']
 	#taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtZ','notVbW','notVtH',
