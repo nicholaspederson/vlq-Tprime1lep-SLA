@@ -8,7 +8,8 @@ import os,sys,fnmatch
 # from unc_pu import *
 # from unc_scale import *
 
-templateDir='/uscms_data/d3/escharni/CMSSW_10_2_10/src/singleLepAnalyzer/makeTemplates/templatesSR_July2019_With_Uncertainties'
+runDir='/uscms_data/d3/cholz/CMSSW_10_2_10/src/singleLepAnalyzer'
+templateDir=runDir+'/makeTemplates/templatesSR_July2019_With_Uncertainties'
 thetaConfigTemp = os.getcwd()+'/theta_combineRun2_template.py'
 whichSignal = 'TT'
 
@@ -18,7 +19,7 @@ if whichSignal == 'BB': skipcode = '_tW'
 toFilter = [] #does what's hardcoded unless there are entries here...
 
 ## save for later when combining with other final states or doing 1-systematic or 1-channel limit tests
-#toFilterTrilep = []
+toFilterTrilep = []
 #systematicsInFile = ['pileup','q2','jec','jer','jmr','jms','btag','tau21','pdfNew','muRFcorrdNew','toppt','jsf']
 #btagChannels = ['nB0','nB1','nB2','nB3p']
 #toFilter = [syst for syst in systematicsInFile if syst!='muRFenv']
@@ -57,8 +58,8 @@ thetaConfigLines = f.readlines()
 f.close()
 
 def makeThetaConfig(rFile16,rFile17,rFile18,rFile2L16,rFile2L17,rFile2L18,rFile3L16,rFile3L17,rFile3L18,outDir,BRStr):
-	rFileDir = rFile17.split('/')[-2]
-	with open(outDir+'/'+rFileDir+'/'+rFile17.split('/')[-1][:-5]+'.py','w') as fout:
+	rFileDir = rFile18.split('/')[-2]
+	with open(outDir+'/'+rFileDir+'/'+rFile18.split('/')[-1][:-5]+'.py','w') as fout:
 		for line in thetaConfigLines:
                     ### save for later when combining with other final states
                     # if 'TTZPUDOWN' in line: line = line.replace('TTZPUDOWN',str(2.0-puDn['TTZ']))
@@ -210,7 +211,7 @@ savedir = os.getcwd()
 for file in rootfilelist:
     fileName = file.split('/')[-1]
     signal = fileName.split('_')[2]
-    BRStr = fileName[fileName.find(signal)+len(signal):fileName.find('_41p53fb')]        
+    BRStr = fileName[fileName.find(signal)+len(signal):fileName.find('_59p69fb')]        
 
     file1L2017 = ((file.replace('templatesSR_July2019_With_Uncertainties','templatesSR_July_MVA_Update_Round2')).replace('cholz','escharni')).replace('59p69','41p53')  ## assuming same pfix!! 
     print '-------------------------------------'
@@ -252,7 +253,7 @@ for file in rootfilelist:
 universe = vanilla
 Executable = %(rundir)s/thetaLimits/doThetaLimits.sh
 Should_Transfer_Files = YES
-Transfer_Input_Files = %(configfile)s.py, %(file1L17)s %(file1L18)s
+Transfer_Input_Files = %(configfile)s.py, %(file1L17)s, %(file1L18)s
 WhenToTransferOutput = ON_EXIT
 Output = %(configfile)s.out
 Error = %(configfile)s.err
