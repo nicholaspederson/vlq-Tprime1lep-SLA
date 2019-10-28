@@ -1,7 +1,7 @@
 import os,sys,fnmatch
 
-runDir='/uscms_data/d3/jmanagan/CMSSW_9_4_6_patch1/src/singleLepAnalyzer/'
-templateDir=runDir+'makeTemplates/templatesSR_Apr22Dnn0p9Counts'
+runDir='/uscms_data/d3/cholz/CMSSW_10_2_10/src/singleLepAnalyzer/'
+templateDir=runDir+'makeTemplates/templatesSR_July2019_With_Uncertainties'#No slash at the end!
 postfix = ''
 
 thetaConfigTemp = os.getcwd()+'/theta_config_template.py'
@@ -18,7 +18,7 @@ toFilter0 = ['_toppt_','_muRFcorrd_'] #always remove in case they are in templat
 toFilter0 = [item for item in toFilter0]
 
 limitConfs = {#'<limit type>':[filter list]
-    'ST':[],
+    #'ST':[],
     #'Tp2Mass':[],
     'Tp2MST':[],
     #'Tp2MDnn':[],
@@ -29,7 +29,7 @@ limitConfs = {#'<limit type>':[filter list]
     }
 
 limitType = ''  #label for bookkeeping
-outputDir = os.getcwd()+'/limitsApr19/'+templateDir.split('/')[-1]+'/'
+outputDir = os.getcwd()+'/limitsJuly2019/'+templateDir.split('/')[-1]+'/'
 if not os.path.exists(outputDir): os.system('mkdir '+outputDir)
 outputDir+= '/'+limitType+'/'
 if not os.path.exists(outputDir): os.system('mkdir '+outputDir)
@@ -90,7 +90,7 @@ for limitConf in limitConfs:
         if '_'+limitConf+'_' not in file: continue
         fileName = file.split('/')[-1]
         signal = fileName.split('_')[2]
-        BRStr = fileName[fileName.find(signal)+len(signal):fileName.find('_59p690fb')]
+        BRStr = fileName[fileName.find(signal)+len(signal):fileName.find('_59p69fb')]
 
         ## Make the output directory, go there, and make the config
         ## Will pick up executable from main dir

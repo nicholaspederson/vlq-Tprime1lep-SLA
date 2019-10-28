@@ -17,13 +17,13 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = 'root://cmseos.fnal.gov//store/user/cholz/FWLJMET102X_1lep2018Dnn_071519_step1hadds'
+step1Dir = 'root://cmseos.fnal.gov//store/user/cholz/FWLJMET102X_1lep2018Dnn_080819_step2hadds_TTandBB'
 
 iPlot = 'HT' #minMlb' #choose a discriminant from plotList below!
 if len(sys.argv)>2: iPlot=sys.argv[2]
-region = 'PS'
+region = 'CR'
 if len(sys.argv)>3: region=sys.argv[3]
-isCategorized = False
+isCategorized = True
 if len(sys.argv)>4: isCategorized=int(sys.argv[4])
 doJetRwt= 1
 doTopRwt= 0
@@ -50,8 +50,7 @@ bkgList = [
 	'DYMG200','DYMG400','DYMG600','DYMG800','DYMG1200','DYMG2500','WJetsMG200','WJetsMG400','WJetsMG600','WJetsMG800','WJetsMG1200','WJetsMG2500',
 	'TTJetsHad0','TTJetsHad700','TTJetsHad1000','TTJetsSemiLep0','TTJetsSemiLep700','TTJetsSemiLep1000','TTJets2L2nu0','TTJets2L2nu700','TTJets2L2nu1000',
 	'TTJetsPH700mtt','TTJetsPH1000mtt','Ts','Tbt','Tt','TtW','TbtW','TTWl','TTZl',
-	'WW','WZ','ZZ','ttHToNonbb','ttHTobb',
-	'QCDht200','QCDht300','QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000'
+	'WW','WZ','ZZ','ttHToNonbb','ttHTobb','QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000'
 	]
 
 dataList = [
@@ -61,9 +60,9 @@ dataList = [
 	#'Data18MU',
 	]
 
-whichSignal = 'TT' #HTB, TT, BB, or X53X53
+whichSignal = 'BB' #HTB, TT, BB, or X53X53
 #massList = range(1000,1800+1,100)
-massList = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
+massList = [1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
 if whichSignal=='TT': decays = ['BWBW','THTH','TZTZ','TZBW','THBW','TZTH'] #T' decays
@@ -127,9 +126,9 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
         'Bp1deltaR':('Bprime1_DeepAK8_deltaR',linspace(0,5,51).tolist(),';#DeltaR(B quark product jets)'),
         'Bp2deltaR':('Bprime2_DeepAK8_deltaR',linspace(0,5,51).tolist(),';#DeltaR(B quark product jets)'),
 
-	'DnnTprime':('dnn_Tprime',linspace(0,1,nbins).tolist(),';DNN VLQ score'),
-	'DnnTTbar':('dnn_ttbar',linspace(0,1,51).tolist(),';DNN t#bar{t} score'),
-	'DnnWJets':('dnn_WJets',linspace(0,1,51).tolist(),';DNN W+jets score'),
+	'DnnTprime':('dnn_Tprime',linspace(0,1,nbins).tolist(),';DNN T score'),
+	'DnnTTbar':('dnn_ttbar',linspace(0,1,51).tolist(),';DNN-T t#bar{t} score'),
+	'DnnWJets':('dnn_WJets',linspace(0,1,51).tolist(),';DNN-T W+jets score'),
         'probSumDecay':('probSum_DeepAK8_decay',linspace(0,20,21).tolist(),';weighted sum of decay product probabilities'), ## replace with ALGO if needed
         'probSumFour':('probSum_DeepAK8_four',linspace(0,5,6).tolist(),';sum of W/Z/H/t probabilities'),
         'probb':('dnn_B_DeepAK8Calc_PtOrdered',linspace(0,1,51).tolist(),';B score'),  ## replace with AlgoCalc if needed

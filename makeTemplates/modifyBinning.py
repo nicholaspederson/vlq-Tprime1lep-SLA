@@ -29,13 +29,14 @@ start_time = time.time()
 # -- Use "removalKeys" to remove specific systematics from the output file.
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-iPlot='Tp2MDnn'
+iPlot='HT'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
-folder = 'templatesSR_Mar30NoPDF'
+folder = 'templatesCR_Aug2019TTtest2'
 if len(sys.argv)>2: folder=str(sys.argv[2])
 cutString = ''
 templateDir = os.getcwd()+'/'+folder+'/'+cutString
-combinefile = 'yields_'+iPlot+'_41p530fb.root'
+print "templateDir: ",templateDir
+combinefile = 'yields_'+iPlot+'_59p69fb.root'
 
 rebin4chi2 = False #include data in requirements
 rebinCombine = False #else rebins theta templates
@@ -44,7 +45,7 @@ normalizeRENORM = False #only for signals
 normalizePDF    = False #only for signals
 #X53X53, TT, BB, HTB, etc --> this is used to identify signal histograms for combine templates when normalizing the pdf and muRF shapes to nominal!!!!
 sigName = 'TT' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
-massList = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
+massList = [1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
 sigProcList = [sigName+'M'+str(mass) for mass in massList]
 if sigName=='TT': 
 	sigProcList = [sigName+'M'+str(mass) for mass in massList]
@@ -92,7 +93,15 @@ def findfiles(path, filtre):
             yield os.path.join(root, f)
 
 #Setup the selection of the files to be rebinned:          only those that aren't rebinned and are this plot
-rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' not in file and 'bW' in file and combinefile not in file and '_'+iPlot+'_' in file.split('/')[-1]]
+if 'BB' in folder: 
+	rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' not in file and 'tW' in file and combinefile not in file and '_'+iPlot+'_' in file.split('/')[-1]]
+if 'TT' in folder:
+        rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' not in file and 'bW' in file and combinefile not in file and '_'+iPlot+'_' in file.split('/')[-1]]
+print "templateDir: ",templateDir
+print "file: ",file
+print "combinefile: ",combinefile
+print "iPlot: ",iPlot
+print "rfiles: ",rfiles
 if rebinCombine: rfiles = [templateDir+'/'+combinefile]
 
 #Open the lowest mass signal for consistency
@@ -200,11 +209,11 @@ for chn in totBkgHists.keys():
 					xbinsListTemp[chn].append(totBkgHists[chn].GetXaxis().GetBinLowEdge(Nbins+1-iBin))
 
 	## Going right to left -- if the last entry isn't 0 add it
-	if (iPlot != 'DnnTprime' or 'CR' in folder) and xbinsListTemp[chn][-1]!=0: xbinsListTemp[chn].append(0)
-	if iPlot == 'DnnTprime' and 'templatesSR' in folder:
+	if ((iPlot != 'DnnTprime' and iPlot != 'DnnBprime') or 'CR' in folder) and xbinsListTemp[chn][-1]!=0: xbinsListTemp[chn].append(0)
+	if (iPlot == 'DnnTprime' or iPlot == 'DnnBprime') and 'templatesSR' in folder:
 		if xbinsListTemp[chn][-1]>0.5: xbinsListTemp[chn].append(0.5)
 		elif xbinsListTemp[chn][-1]!=0.5: xbinsListTemp[chn][-1] = 0.5
-	elif iPlot == 'DnnTprime' and 'CR' in folder and xbinsListTemp[chn][0]!=0.5: xbinsListTemp[chn][0] = 0.5 
+	elif (iPlot == 'DnnTprime' or iPlot == 'DnnBprime') and 'CR' in folder and xbinsListTemp[chn][0]!=0.5: xbinsListTemp[chn][0] = 0.5 
 	
 	## If the 1st bin is empty or too small, make the left side wider
 	if totBkgHists[chn].GetBinContent(1)==0. or totBkgHists[chn.replace('isE','isM')].GetBinContent(1)==0.: 
@@ -240,17 +249,17 @@ for key in xbinsList.keys(): xbins[key] = array('d', xbinsList[key])
 
 #os._exit(1)
 
-### NEED TO REMAKE THESE FOR 2017
-muSFsUp = {'TTM1000':0.743,'TTM1100':0.737,'TTM1200':0.740,'TTM1300':0.741,'TTM1400':0.737,'TTM1500':0.737,'TTM1600':0.734,'TTM1700':0.735,'TTM1800':0.740}
-muSFsDn = {'TTM1000':1.314,'TTM1100':1.323,'TTM1200':1.318,'TTM1300':1.318,'TTM1400':1.324,'TTM1500':1.324,'TTM1600':1.328,'TTM1700':1.330,'TTM1800':1.321}
-pdfSFsUp = {'TTM1000':0.997,'TTM1100':0.996,'TTM1200':0.996,'TTM1300':0.994,'TTM1400':0.991,'TTM1500':0.987,'TTM1600':0.984,'TTM1700':0.977,'TTM1800':0.969}
-pdfSFsDn = {'TTM1000':1.005,'TTM1100':1.004,'TTM1200':1.007,'TTM1300':1.011,'TTM1400':1.014,'TTM1500':1.020,'TTM1600':1.027,'TTM1700':1.036,'TTM1800':1.051}
+### Updated for 2017, JH August 2019
+muSFsUp = {'TTM1000':0.744,'TTM1100':0.747,'TTM1200':0.742,'TTM1300':0.741,'TTM1400':0.738,'TTM1500':0.740,'TTM1600':0.735,'TTM1700':0.721,'TTM1800':0.746}
+muSFsDn = {'TTM1000':1.312,'TTM1100':1.306,'TTM1200':1.315,'TTM1300':1.316,'TTM1400':1.322,'TTM1500':1.319,'TTM1600':1.329,'TTM1700':1.354,'TTM1800':1.311}
+pdfSFsUp = {'TTM1000':0.997,'TTM1100':0.996,'TTM1200':0.995,'TTM1300':0.994,'TTM1400':0.991,'TTM1500':0.986,'TTM1600':0.984,'TTM1700':0.980,'TTM1800':0.966}
+pdfSFsDn = {'TTM1000':1.005,'TTM1100':1.007,'TTM1200':1.008,'TTM1300':1.011,'TTM1400':1.015,'TTM1500':1.022,'TTM1600':1.027,'TTM1700':1.031,'TTM1800':1.050}
 
 if sigName == 'BB':
-	muSFsUp = {'BBM1000':0.742,'BBM1100':0.742,'BBM1200':0.741,'BBM1300':0.741,'BBM1400':0.739,'BBM1500':0.735,'BBM1600':0.732,'BBM1700':0.720,'BBM1800':0.855}
-	muSFsDn = {'BBM1000':1.315,'BBM1100':1.316,'BBM1200':1.318,'BBM1300':1.317,'BBM1400':1.321,'BBM1500':1.328,'BBM1600':1.334,'BBM1700':1.356,'BBM1800':1.272}
-	pdfSFsUp = {'BBM1000':0.997,'BBM1100':0.996,'BBM1200':0.996,'BBM1300':0.994,'BBM1400':0.991,'BBM1500':0.987,'BBM1600':0.984,'BBM1700':0.980,'BBM1800':0.937}
-	pdfSFsDn = {'BBM1000':1.005,'BBM1100':1.005,'BBM1200':1.008,'BBM1300':1.012,'BBM1400':1.015,'BBM1500':1.020,'BBM1600':1.026,'BBM1700':1.030,'BBM1800':1.133}
+	muSFsUp = {'BBM1000':0.742,'BBM1100':0.743,'BBM1200':0.742,'BBM1300':0.741,'BBM1400':0.739,'BBM1500':0.735,'BBM1600':0.735,'BBM1700':0.733,'BBM1800':0.731}
+	muSFsDn = {'BBM1000':1.315,'BBM1100':1.314,'BBM1200':1.316,'BBM1300':1.318,'BBM1400':1.321,'BBM1500':1.329,'BBM1600':1.329,'BBM1700':1.331,'BBM1800':1.337}
+	pdfSFsUp = {'BBM1000':0.997,'BBM1100':0.997,'BBM1200':0.996,'BBM1300':0.994,'BBM1400':0.991,'BBM1500':0.987,'BBM1600':0.984,'BBM1700':0.979,'BBM1800':0.970}
+	pdfSFsDn = {'BBM1000':1.005,'BBM1100':1.006,'BBM1200':1.008,'BBM1300':1.011,'BBM1400':1.015,'BBM1500':1.019,'BBM1600':1.027,'BBM1700':1.037,'BBM1800':1.049}
 
 iRfile=0
 yieldsAll = {}
@@ -282,7 +291,7 @@ for rfile in rfiles:
 			if any([item in hist and not removalKeys[item] for item in removalKeys.keys()]): continue
 			rebinnedHists[hist].Write()
 
-			if 'bW0p5' in rfile:
+			if 'W0p5' in rfile:
 				yieldHistName = hist
 				if not rebinCombine: yieldHistName = hist.replace('_sig','_'+rfile.split('_')[-5]) ### ASSUMING BR IS IN FILE NAME
 
@@ -332,7 +341,7 @@ for rfile in rfiles:
 			if ('sig__mu' in hist and normalizeRENORM) or (rebinCombine and '__'+sigName in hist and '__mu' in hist and normalizeRENORM): #normalize the renorm/fact shapes to nominal
 				scalefactorUp = muSFsUp[signame]
 				scalefactorDn = muSFsDn[signame]
-				muRFcorrdNewUpHist.Scale(scalefactorUp)   # shape-only: muRFcorrdNewUpHist.Scale(renormNomHist.Integral()/muRFcorrdNewUpHist.Integral()) 
+				muRFcorrdNewUpHist.Scale(scalefactorUp)
 				muRFcorrdNewDnHist.Scale(scalefactorDn)
  				# renormNomHist = tfiles[iRfile].Get(hist[:hist.find('__mu')]).Clone()
 				# muRFcorrdNewUpHist.Scale(renormNomHist.Integral()/muRFcorrdNewUpHist.Integral())
@@ -360,10 +369,10 @@ for rfile in rfiles:
 				scalefactorUp = pdfSFsUp[signame]
 				scalefactorDn = pdfSFsDn[signame]
 				#print 'Mass',signame,': assigning SFup =',scalefactorUp,', SFdn =',scalefactorDn
-				#pdfNewUpHist.Scale(scalefactorUp)
-				#pdfNewDnHist.Scale(scalefactorDn)
-				pdfNewUpHist.Scale(renormNomHist.Integral()/pdfNewUpHist.Integral())  ### FOR NOW, NEED NEW SIGNAL PDF
-				pdfNewDnHist.Scale(renormNomHist.Integral()/pdfNewDnHist.Integral())
+				pdfNewUpHist.Scale(scalefactorUp)
+				pdfNewDnHist.Scale(scalefactorDn)
+				#pdfNewUpHist.Scale(renormNomHist.Integral()/pdfNewUpHist.Integral())
+				#pdfNewDnHist.Scale(renormNomHist.Integral()/pdfNewDnHist.Integral())
 			pdfNewUpHist.Write()
 			pdfNewDnHist.Write()
 			yieldsAll[pdfNewUpHist.GetName().replace('_sig','_'+rfile.split('_')[-2])] = pdfNewUpHist.Integral()
@@ -460,6 +469,7 @@ for isEM in isEMlist:
 					else: yielderrtemp += (modelingSys[proc+'_'+modTag]*yieldtemp)**2
 					yielderrtemp += (corrdSys*yieldtemp)**2
 				yielderrtemp = math.sqrt(yielderrtemp)
+				print "yieldsAll: ",yieldsAll
 				if proc==dataName: row.append(' & '+str(int(yieldsAll[histoPrefix+proc])))
 				else: row.append(' & '+str(round_sig(yieldtemp,5))+' $\pm$ '+str(round_sig(yielderrtemp,2)))
 			row.append('\\\\')
