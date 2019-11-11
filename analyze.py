@@ -63,8 +63,8 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 	# Define weights
 	TrigEffElUp = '(triggSF+isElectron*triggSFUncert)'
 	TrigEffElDn = '(triggSF-isElectron*triggSFUncert)'
-        TriggEffMuUp='(triggSF+isMuon*triggSFUncert)'
-        TriggEffMuDn='(triggSF-isMuon*triggSFUncert)'
+        TrigEffMuUp='(triggSF+isMuon*triggSFUncert)'
+        TrigEffMuDn='(triggSF-isMuon*triggSFUncert)'
 	TrigEff = 'triggSF'
 	cut += ' && DataPastTrigger == 1 && MCPastTrigger == 1'
 
@@ -89,8 +89,8 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 
 		weightTrigEffElUpStr  = weightStr.replace(TrigEff,TrigEffElUp)
 		weightTrigEffElDownStr = weightStr.replace(TrigEff,TrigEffElDn)
-                weightTrigEffMuUpStr = weightStr.replace(TriggEff,TrigEffMuUp)
-                weightTrigEffMuDownStr = weightStr.replace(TriggEff,TrigEffMuDn)
+                weightTrigEffMuUpStr = weightStr.replace(TrigEff,TrigEffMuUp)
+                weightTrigEffMuDownStr = weightStr.replace(TrigEff,TrigEffMuDn)
 		weightPileupUpStr   = weightStr.replace('pileupWeight','pileupWeightUp')
 		weightPileupDownStr = weightStr.replace('pileupWeight','pileupWeightDown')
 		weightmuRFcorrdUpStr   = 'renormWeights[5] * '+weightStr
@@ -141,30 +141,30 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 	if 'Tau32Nm1' in iPlot:  cut += ' && ('+soft_massvar+' > 105 && '+soft_massvar+' < 210 && '+pt_var+' > 400)'
 	if 'DoubleBNm1' in iPlot: cut += ' && ('+soft_massvar+' > 105 && '+soft_massvar+' < 135 && '+pt_var+' > 300)'
 
-	if ((iPlot == 'Tp2MDnn' and 'notV' in tag) or iPlot == 'DnnTprime'):
+	if isCategorized and ((iPlot == 'Tp2MDnn' and 'notV' in tag) or iPlot == 'DnnTprime'):
 		plotTreeName = 'dnn_Tprime'
 		xbins = array('d', linspace(float(cutList['dnnCut']),1,51).tolist())
-		xaxislabel = ';DNN T score'
+		xAxisLabel = ';DNN T score'
 	if iPlot == 'Tp2MST':
 		if 'notV' in tag: 
 			plotTreeName = 'AK4HTpMETpLepPt'
 			xbins = array('d', linspace(0,5000,51).tolist())
-			xaxislabel = ';ST [GeV]'
+			xAxisLabel = ';ST [GeV]'
         if whichSig == 'BB':
                 plotTreeName = plotTreeName.replace('Tprime','Bprime')
                 iPlot = iPlot.replace('Tp','Bp')
-                xaxislabel = xaxislabel.replace('DNN T score','DNN B score')
+                xAxisLabel = xAxisLabel.replace('DNN T score','DNN B score')
         	plotTreeName = plotTreeName.replace('dnn_WJets','dnn_WJetsBB')
-                iPlot = iPlot.repace('DnnWJets','DnnWJetsBB')                                
+                iPlot = iPlot.replace('DnnWJets','DnnWJetsBB')                                
                 plotTreeName = plotTreeName.replace('dnn_ttbar','dnn_ttbarBB')
                 iPlot = iPlot.replace('DnnTTbar','DnnTTbarBB')
-                xaxislabel = xaxislabel.replace('DNN-T','DNN-B')
+                xAxisLabel = xAxisLabel.replace('DNN-T','DNN-B')
 
         print "*****"*20
 	print "*****"*20
 	print "DISTRIBUTION:", iPlot
 	print "            -name in ljmet trees:", plotTreeName
-	print "            -x-axis label is set to:", xaxislabel
+	print "            -x-axis label is set to:", xAxisLabel
 	print "            -using the binning as:", xbins
        	print "/////"*5
 	print "PROCESSING: ", process
@@ -314,6 +314,7 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 
 	# DRAW histograms
 	tTree[process].Draw(plotTreeName+' >> '+iPlot+''+'_'+lumiStr+'fb_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
+	print 'Nominal hist integral: ',hists[iPlot+''+'_'+lumiStr+'fb_'+catStr+'_' +process].Integral()
 	if doAllSys:
 		tTree[process].Draw(plotTreeName+' >> '+iPlot+'trigeffElUp_'    +lumiStr+'fb_'+catStr+'_'+process, weightTrigEffElUpStr+'*('+fullcut+')', 'GOFF')
 		tTree[process].Draw(plotTreeName+' >> '+iPlot+'trigeffElDown_'  +lumiStr+'fb_'+catStr+'_'+process, weightTrigEffElDownStr+'*('+fullcut+')', 'GOFF')
