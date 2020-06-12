@@ -32,7 +32,7 @@ if not os.path.exists(outDir+'/sigs'): os.system('mkdir '+outDir+'/sigs')
 
 saveKey = ''#
 channels = ['isE','isM','isL']
-tags = []#'taggedbWbW','taggedtZbW','taggedtHbW','taggedtZHtZH','notVbW','notVtH','notVtZ','notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
+tags = ['taggedbWbW','taggedtZbW','taggedtHbW','taggedtZHtZH','notVbW','notVtH','notVtZ','notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
 if year == '2018': tags = tags+['dnnLargeT','dnnLargeH','dnnLargeZ','dnnLargeW','dnnLargeBJwjet','dnnLargeBJttbar']
 systematics = ['pileup','jec','jer','jsf','muRFcorrdNewTop','muRFcorrdNewEwk','trigeffEl','trigeffMu','btag','ltag','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis']
 if year == '2017': systematics.append('prefire')
