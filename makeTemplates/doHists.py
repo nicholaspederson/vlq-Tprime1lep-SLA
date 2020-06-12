@@ -17,13 +17,13 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = 'root://cmseos.fnal.gov//store/user/cholz/FWLJMET102X_1lep2018Dnn_080819_step2hadds_TTandBB'
+step1Dir = 'root://cmseos.fnal.gov//store/user/jmanagan/FWLJMET102X_1lep2018Dnn_Mar2020_step2hadds'
 
-iPlot = 'HT' #minMlb' #choose a discriminant from plotList below!
+iPlot = 'DnnTprime' #minMlb' #choose a discriminant from plotList below!
 if len(sys.argv)>2: iPlot=sys.argv[2]
 region = 'CR'
 if len(sys.argv)>3: region=sys.argv[3]
-isCategorized = True
+isCategorized = False
 if len(sys.argv)>4: isCategorized=int(sys.argv[4])
 doJetRwt= 1
 doTopRwt= 0
@@ -47,7 +47,8 @@ where <shape> is for example "JECUp". hadder.py can be used to prepare input fil
 """
 
 bkgList = [
-	'DYMG200','DYMG400','DYMG600','DYMG800','DYMG1200','DYMG2500','WJetsMG200','WJetsMG400','WJetsMG600','WJetsMG800','WJetsMG1200','WJetsMG2500',
+	#'DYMG200',,'WJetsMG200'
+	'DYMG400','DYMG600','DYMG800','DYMG1200','DYMG2500','WJetsMG400','WJetsMG600','WJetsMG800','WJetsMG1200','WJetsMG2500',
 	'TTJetsHad0','TTJetsHad700','TTJetsHad1000','TTJetsSemiLep0','TTJetsSemiLep700','TTJetsSemiLep1000','TTJets2L2nu0','TTJets2L2nu700','TTJets2L2nu1000',
 	'TTJetsPH700mtt','TTJetsPH1000mtt','Ts','Tbt','Tt','TtW','TbtW','TTWl','TTZl',
 	'WW','WZ','ZZ','ttHToNonbb','ttHTobb','QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000'
@@ -60,9 +61,8 @@ dataList = [
 	#'Data18MU',
 	]
 
-whichSignal = 'BB' #HTB, TT, BB, or X53X53
-#massList = range(1000,1800+1,100)
-massList = [1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
+whichSignal = 'TT' #HTB, TT, BB, or X53X53
+massList = range(1100,1800+1,100)
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
 if whichSignal=='TT': decays = ['BWBW','THTH','TZTZ','TZBW','THBW','TZTH'] #T' decays
@@ -205,6 +205,7 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
 	'PtRelAK8':('ptRel_lepAK8',linspace(0,500,51).tolist(),';p_{T,rel}(l, closest AK8 jet) [GeV]'),
 
 	'HT':('AK4HT',linspace(0, 5000, nbins).tolist(),';H_{T} (GeV);'),
+	'HTNtag':('AK4HT',linspace(0, 5000, nbins).tolist(),';H_{T} (GeV);'),
 	'ST':('AK4HTpMETpLepPt',linspace(0, 5000, nbins).tolist(),';S_{T} (GeV);'),
 	'minMlb':('minMleppBjet',linspace(0, xmax, nbins).tolist(),';min[M(l,b)] (GeV);'),
 	'minMlbST':('minMleppBjet',linspace(0, xmax, nbins).tolist(),';min[M(l,b)] (GeV);'), #analyze.py will use ST for H tag bins
