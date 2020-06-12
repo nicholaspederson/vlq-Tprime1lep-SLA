@@ -80,7 +80,7 @@ def readTreeShift(sample,shift,step1Dir):
 
 ##############################################################################
 
-def normByBinWidth(h):
+def normByBinWidth(h,perNGeV):
 	h.SetBinContent(0,0)
 	h.SetBinContent(h.GetNbinsX()+1,0)
 	h.SetBinError(0,0)
@@ -88,18 +88,19 @@ def normByBinWidth(h):
 	
 	for bin in range(1,h.GetNbinsX()+1):
 		width=float(h.GetBinWidth(bin))
+                width = width/perNGeV   # could do events / 100 GeV or such, or events / 0.01
+                
 		content=h.GetBinContent(bin)
 		error=h.GetBinError(bin)
-		if width<1: width *= 100 # Dealing with plots with x range 0 to 1
-		
+	
 		h.SetBinContent(bin, content/width)
 		h.SetBinError(bin, error/width)
 
-def poissonNormByBinWidth(tgae,hist):
+def poissonNormByBinWidth(tgae,hist,perNGeV):
 	alpha = 1. - 0.6827
 	for ibin in range(0,tgae.GetN()):
 		width = float(hist.GetBinWidth(ibin+1))
-		if width<1: width *= 100 # Dealing with plots with x range 0 to 1
+                width = width/perNGeV   # could do events / 100 GeV or such, or events / 0.01
 		X = tgae.GetX()[ibin]
 		N = tgae.GetY()[ibin]
 		L = 0
