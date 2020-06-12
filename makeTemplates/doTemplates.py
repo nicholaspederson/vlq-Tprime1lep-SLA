@@ -13,14 +13,14 @@ start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
 
-region='SR' #PS,SR,TTCR,WJCR,CR
-isCategorized=True
+region='PS' #PS,SR,TTCR,WJCR,CR
+isCategorized=False
 pfix='templates'+region
 if not isCategorized: pfix='kinematics'+region
-pfix+='_HTNtag4TT'#_July2019_With_Uncertainties
+pfix+='_Mar2020BB'#_July2019_With_Uncertainties
 outDir = os.getcwd()+'/'+pfix+'/'
 
-doCombineTemplates = True
+doCombineTemplates = False
 removeThreshold = 0.015
 zero = 1e-12
 
@@ -57,10 +57,10 @@ dataList = [
 topptProcs = ['top','TTJets']
 
 whichSignal = 'TT' #HTB, TT, BB, or X53X53
-massList = [1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
+massList = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
-print 'I made it here!'
+#print 'I made it here!'
 if whichSignal=='TT': decays = ['BWBW','THTH','TZTZ','TZBW','THBW','TZTH'] #T' decays
 if whichSignal=='BB': decays = ['TWTW','BHBH','BZBZ','BZTW','BHTW','BZBH'] #B' decays 	#sigList.remove('BBM1700')
 
@@ -148,14 +148,14 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 			#Group data processes
 			hists['data'+i] = datahists[histoPrefix+'_'+dataList[0]].Clone(histoPrefix+'__DATA')
 			for dat in dataList:
-			      	#print 'dataList member',dat,'with integral',datahists[histoPrefix+'_'+dat].Integral()
+			      	print 'dataList member',dat,'with integral',datahists[histoPrefix+'_'+dat].Integral()
 				if dat!=dataList[0]: hists['data'+i].Add(datahists[histoPrefix+'_'+dat])
 			
 			#Group processes
 			for proc in bkgProcList+bkgGrupList:
 				hists[proc+i] = bkghists[histoPrefix+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc)
 				for bkg in bkgProcs[proc]:
-					#print 'bkgList member',bkg,'with integral',bkghists[histoPrefix+'_'+bkg].Integral()
+					print 'bkgList member',histoPrefix+'_'+bkg,'with integral',bkghists[histoPrefix+'_'+bkg].Integral()
 					if bkg!=bkgProcs[proc][0]: hists[proc+i].Add(bkghists[histoPrefix+'_'+bkg])
 
 			#get signal
@@ -502,7 +502,6 @@ for iPlot in iPlotList:
 	bkghists  = {}
 	sighists  = {}
 	#if iPlot!='HT': continue
-
 	print "LOADING DISTRIBUTION: "+iPlot
 	for cat in catList:
 		print "         ",cat[2:]
@@ -514,7 +513,10 @@ for iPlot in iPlotList:
 		for key in sighists.keys(): sighists[key].Scale(lumiScaleCoeff)
 
 	checkprint = False
-	print 'sighists check:'
+        #print bkghists
+        #print datahists
+	#print sighists
+	#print 'sighists check:'
 	for key in sighists:
 		if 'MET_' in key and 'TTM800' in key: print key
 	print "       MAKING CATEGORIES FOR TOTAL SIGNALS ..."
