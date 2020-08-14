@@ -29,9 +29,9 @@ start_time = time.time()
 # -- Use "removalKeys" to remove specific systematics from the output file.
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-iPlot='DnnTprime'
+iPlot='HTNtag'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
-folder = 'templatesSR_HTNtag4TT'
+folder = 'templatesCR_June2020TT'
 if len(sys.argv)>2: folder=str(sys.argv[2])
 cutString = ''
 templateDir = os.getcwd()+'/'+folder+'/'+cutString
@@ -40,10 +40,12 @@ combinefile = 'Combine.root'
 thetafile = 'templates_'+iPlot+'_59p69fb.root'
 
 rebin4chi2 = False #include data in requirements
-rebinCombine = True #else rebins theta templates
+rebinCombine = False #else rebins theta templates ## COME SET TO TRUE WHEN DOING SR OR CR isCATEGORIZED
+                                                  ## Should really add a command line argument for runRebinning.sh
+if len(sys.argv)>5: rebinCombine=bool(eval(sys.argv[5]))
 
 normalizeRENORM = True #only for signals
-normalizePDF    = False #only for signals
+normalizePDF    = True #only for signals
 if 'kinematics' in folder: 
 	normalizeRENORM = False
 	normalizePDF = False
@@ -61,7 +63,7 @@ if len(sys.argv)>3: stat_saved=float(sys.argv[3])
 singleBinCR = False
 
 FullMu = False
-if len(sys.argv)>4: FullMu=bool(sys.argv[4])
+if len(sys.argv)>4: FullMu=bool(eval(sys.argv[4]))
 
 if rebinCombine:
 	dataName = 'data_obs'
@@ -74,13 +76,13 @@ else: #theta
 
 addCRsys = False
 addShapes = True
-lumiSys = math.sqrt(0.023**2) #lumi uncertainty plus higgs prop
+lumiSys = math.sqrt(0.025**2) #lumi uncertainty plus higgs prop
 eltrigSys = 0.0 #electron trigger uncertainty
 mutrigSys = 0.0 #muon trigger uncertainty
 elIdSys = 0.02 #electron id uncertainty
 muIdSys = 0.02 #muon id uncertainty
-elIsoSys = 0.01 #electron isolation uncertainty
-muIsoSys = 0.01 #muon isolation uncertainty
+elIsoSys = 0.015 #electron isolation uncertainty
+muIsoSys = 0.015 #muon isolation uncertainty
 elcorrdSys = math.sqrt(lumiSys**2+eltrigSys**2+elIdSys**2+elIsoSys**2)
 mucorrdSys = math.sqrt(lumiSys**2+mutrigSys**2+muIdSys**2+muIsoSys**2)
 
@@ -160,15 +162,20 @@ for chn in totBkgHists.keys():
 	print 'Processing',chn
 
 	Nbins = 0
-	if 'notV' in chn: ## will be SR, need to skip past the taggedXXXX in case they differ
-		xbinsListTemp[chn]=[tfile.Get(datahists[4]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[4]).GetXaxis().GetNbins())]
-		Nbins = tfile.Get(datahists[4]).GetNbinsX()
-	elif 'LargeJ' in chn: ## will be CR, need to skip first 5 that are jet counts
-		xbinsListTemp[chn]=[tfile.Get(datahists[5]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[5]).GetXaxis().GetNbins())]
-		Nbins = tfile.Get(datahists[5]).GetNbinsX()
-	else: ## use the first datahist
+	if 'templates' in folder:
+		if 'notV' in chn: ## will be SR, need to skip past the taggedXXXX in case they differ
+			xbinsListTemp[chn]=[tfile.Get(datahists[4]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[4]).GetXaxis().GetNbins())]
+			Nbins = tfile.Get(datahists[4]).GetNbinsX()
+		elif 'LargeJ' in chn: ## will be CR, need to skip first 5 that are jet counts
+			xbinsListTemp[chn]=[tfile.Get(datahists[5]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[5]).GetXaxis().GetNbins())]
+			Nbins = tfile.Get(datahists[5]).GetNbinsX()
+		else: ## use the first datahist
+			xbinsListTemp[chn]=[tfile.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[0]).GetXaxis().GetNbins())]
+			Nbins = tfile.Get(datahists[0]).GetNbinsX()
+	else:
 		xbinsListTemp[chn]=[tfile.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[0]).GetXaxis().GetNbins())]
 		Nbins = tfile.Get(datahists[0]).GetNbinsX()
+
 	
 	totTempBinContent_E = 0.
 	totTempBinContent_M = 0.
@@ -235,7 +242,7 @@ for chn in totBkgHists.keys():
 
 	## Ignore all this if stat is > 1
 	if stat>1.0:
-		if 'notV' in chn: xbinsListTemp[chn] = [tfile.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[0]).GetXaxis().GetNbins())]
+		if 'notV' in chn or 'kinematics' in folder: xbinsListTemp[chn] = [tfile.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[0]).GetXaxis().GetNbins())]
 		else: xbinsListTemp[chn] = [tfile.Get(datahists[4]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[4]).GetXaxis().GetNbins())]
 		for iBin in range(1,Nbins+1): 
 			xbinsListTemp[chn].append(totBkgHists[chn].GetXaxis().GetBinLowEdge(Nbins+1-iBin))
@@ -259,16 +266,18 @@ for key in xbinsList.keys(): xbins[key] = array('d', xbinsList[key])
 #os._exit(1)
 
 ### Updated for 2017, JH August 2019
-muSFsUp = {'TTM1000':0.744,'TTM1100':0.747,'TTM1200':0.742,'TTM1300':0.741,'TTM1400':0.738,'TTM1500':0.740,'TTM1600':0.735,'TTM1700':0.721,'TTM1800':0.746}
-muSFsDn = {'TTM1000':1.312,'TTM1100':1.306,'TTM1200':1.315,'TTM1300':1.316,'TTM1400':1.322,'TTM1500':1.319,'TTM1600':1.329,'TTM1700':1.354,'TTM1800':1.311}
-pdfSFsUp = {'TTM1000':0.997,'TTM1100':0.996,'TTM1200':0.995,'TTM1300':0.994,'TTM1400':0.991,'TTM1500':0.986,'TTM1600':0.984,'TTM1700':0.980,'TTM1800':0.966}
-pdfSFsDn = {'TTM1000':1.005,'TTM1100':1.007,'TTM1200':1.008,'TTM1300':1.011,'TTM1400':1.015,'TTM1500':1.022,'TTM1600':1.027,'TTM1700':1.031,'TTM1800':1.050}
+### Updated for 2017, JH August 2019
+### 900 is a COPY of 1000!
+muSFsUp = {'TTM900':0.744,'TTM1000':0.744,'TTM1100':0.747,'TTM1200':0.742,'TTM1300':0.741,'TTM1400':0.738,'TTM1500':0.740,'TTM1600':0.735,'TTM1700':0.721,'TTM1800':0.746}
+muSFsDn = {'TTM900':1.312,'TTM1000':1.312,'TTM1100':1.306,'TTM1200':1.315,'TTM1300':1.316,'TTM1400':1.322,'TTM1500':1.319,'TTM1600':1.329,'TTM1700':1.354,'TTM1800':1.311}
+pdfSFsUp = {'TTM900':0.997,'TTM1000':0.997,'TTM1100':0.996,'TTM1200':0.995,'TTM1300':0.994,'TTM1400':0.991,'TTM1500':0.986,'TTM1600':0.984,'TTM1700':0.980,'TTM1800':0.966}
+pdfSFsDn = {'TTM900':1.005,'TTM1000':1.005,'TTM1100':1.007,'TTM1200':1.008,'TTM1300':1.011,'TTM1400':1.015,'TTM1500':1.022,'TTM1600':1.027,'TTM1700':1.031,'TTM1800':1.050}
 
 if sigName == 'BB':
-	muSFsUp = {'BBM1000':0.742,'BBM1100':0.743,'BBM1200':0.742,'BBM1300':0.741,'BBM1400':0.739,'BBM1500':0.735,'BBM1600':0.735,'BBM1700':0.733,'BBM1800':0.731}
-	muSFsDn = {'BBM1000':1.315,'BBM1100':1.314,'BBM1200':1.316,'BBM1300':1.318,'BBM1400':1.321,'BBM1500':1.329,'BBM1600':1.329,'BBM1700':1.331,'BBM1800':1.337}
-	pdfSFsUp = {'BBM1000':0.997,'BBM1100':0.997,'BBM1200':0.996,'BBM1300':0.994,'BBM1400':0.991,'BBM1500':0.987,'BBM1600':0.984,'BBM1700':0.979,'BBM1800':0.970}
-	pdfSFsDn = {'BBM1000':1.005,'BBM1100':1.006,'BBM1200':1.008,'BBM1300':1.011,'BBM1400':1.015,'BBM1500':1.019,'BBM1600':1.027,'BBM1700':1.037,'BBM1800':1.049}
+	muSFsUp = {'BBM900':0.742,'BBM1000':0.742,'BBM1100':0.743,'BBM1200':0.742,'BBM1300':0.741,'BBM1400':0.739,'BBM1500':0.735,'BBM1600':0.735,'BBM1700':0.733,'BBM1800':0.731}
+	muSFsDn = {'BBM900':1.315,'BBM1000':1.315,'BBM1100':1.314,'BBM1200':1.316,'BBM1300':1.318,'BBM1400':1.321,'BBM1500':1.329,'BBM1600':1.329,'BBM1700':1.331,'BBM1800':1.337}
+	pdfSFsUp = {'BBM900':0.997,'BBM1000':0.997,'BBM1100':0.997,'BBM1200':0.996,'BBM1300':0.994,'BBM1400':0.991,'BBM1500':0.987,'BBM1600':0.984,'BBM1700':0.979,'BBM1800':0.970}
+	pdfSFsDn = {'BBM900':1.005,'BBM1000':1.005,'BBM1100':1.006,'BBM1200':1.008,'BBM1300':1.011,'BBM1400':1.015,'BBM1500':1.019,'BBM1600':1.027,'BBM1700':1.037,'BBM1800':1.049}
 
 iRfile=0
 yieldsAll = {}
