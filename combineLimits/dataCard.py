@@ -2,6 +2,7 @@
 
 import os,sys,time,math,datetime,itertools
 from ROOT import gROOT,TFile,TH1F
+
 parent = os.path.dirname(os.getcwd())
 thisdir= os.path.dirname(os.getcwd()+'/')
 sys.path.append(parent)
@@ -26,10 +27,11 @@ def add_shapes(cb):
 	for chn in chns:
 		CRbkg_pattern = 'HTNtag_'+lumiStr+'_%s$BIN__$PROCESS' % chn
 		SRbkg_pattern = 'DnnTprime_'+lumiStr+'_%s$BIN__$PROCESS' % chn
-                #print'SRbkg_pattern: ',SRbkg_pattern
+    #print'SRbkg_pattern: ',SRbkg_pattern
 		if whichsignal=='BB':
 			CRbkg_pattern = 'HTNtag_'+lumiStr+'_%s$BIN__$PROCESS' % chn
-                        SRbkg_pattern = 'DnnBprime_'+lumiStr+'_%s$BIN__$PROCESS' % chn
+      SRbkg_pattern = 'DnnBprime_'+lumiStr+'_%s$BIN__$PROCESS' % chn
+
 		if 'isCR' in chn: 
 			cb.cp().channel([chn]).era([era]).backgrounds().ExtractShapes(
 				rfile, CRbkg_pattern, CRbkg_pattern + '__$SYSTEMATIC')
@@ -38,13 +40,14 @@ def add_shapes(cb):
 			cb.cp().channel([chn]).era([era]).backgrounds().ExtractShapes(
 				rfile, SRbkg_pattern, SRbkg_pattern + '__$SYSTEMATIC')
 		        
-                CRsig_pattern = 'HTNtag_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
+    CRsig_pattern = 'HTNtag_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
 		SRsig_pattern = 'DnnTprime_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
 		#CRsig_pattern = 'HTNtag_'+lumiStr+'_%s__' % chn +'TTM'+str(mass)+'__'
 		#SRsig_pattern = 'DnnTprime_'+lumiStr+'_%s__' % chn +'TTM'+str(mass)+'__'
-                if whichsignal=='BB':
+    if whichsignal=='BB':
  			CRsig_pattern = 'HTNtag_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
-	        	SRsig_pattern = 'DnnBprime_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
+	   	SRsig_pattern = 'DnnBprime_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
+
 		if 'isCR' in chn:
 			cb.cp().channel([chn]).era([era]).signals().ExtractShapes(
 				rfile, CRsig_pattern, CRsig_pattern + '__$SYSTEMATIC')
@@ -110,47 +113,47 @@ def add_systematics(cb):
         ####Uncertainties from ROOT files########
 	cb.cp().process(signal + allbkgs).channel(chnsE).AddSyst(cb, 'trigeffEl$ERA', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
 	cb.cp().process(signal + allbkgs).channel(chnsM).AddSyst(cb, 'trigeffMu$ERA', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        ##cb.cp().process(ewk).channel(chns).AddSyst(cb, 'jsf_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))###jsf and pileup change to pdfNew. Check ewk in process
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Teff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Tmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Heff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Hmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Zeff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Zmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Weff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Wmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Beff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Bmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jeff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  ##cb.cp().process(ewk).channel(chns).AddSyst(cb, 'jsf_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))###jsf and pileup change to pdfNew. Check ewk in process
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Teff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Tmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Heff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Hmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Zeff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Zmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Weff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Wmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Beff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Bmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jeff_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jmis_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
 	#cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'jer_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'jer_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'jer_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
 	#cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'prefire_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0)) # Uncorrelated; Ex: B2G-19-001/AN2018_322_v7
-        #cb.cp().process(signal + allbkgs).channel(chnsE).AddSyst(cb, 'trigeffEl', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chnsM).AddSyst(cb, 'trigeffMu', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(ewk).channel(chns).AddSyst(cb, 'jsf_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))###jsf and pileup change to pdfNew. Check ewk in process
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Teff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Tmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Heff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Hmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Zeff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Zmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Weff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Wmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Beff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Bmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        ##cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jeff', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        ##cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jmis', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
-        #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'jer', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chnsE).AddSyst(cb, 'trigeffEl', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chnsM).AddSyst(cb, 'trigeffMu', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(ewk).channel(chns).AddSyst(cb, 'jsf_$ERA', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))###jsf and pileup change to pdfNew. Check ewk in process
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Teff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Tmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Heff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Hmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Zeff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Zmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Weff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Wmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Beff', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Bmis', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
+  ##cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jeff', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  ##cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jmis', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
+  #cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'jer', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
 	#cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'jec', 'shape', ch.SystMap('era')(['13TeV_R2016'], 1.0)(['13TeV_R2017'], 1.0)(['13TeV_R2018'], 1.0))
 	cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'jer$ERA', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
 	cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'jec$ERA', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'prefire', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0)) # Uncorrelated; Ex: B2G-19-001/AN2018_322_v7
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'prefire', 'shape', ch.SystMap('era')(['2016'], 1.0)(['2017'], 1.0)(['2018'], 1.0)) # Uncorrelated; Ex: B2G-19-001/AN2018_322_v7
 
  	#cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'pdfNew', 'shape', ch.SystMap()(1.0)) # Correlated, PDF and QCD Scale (not recalculated in 2018); Ex: B2G-19-001/AN2018_322_v7 
 	cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'pdfNew$ERA', 'shape', ch.SystMap()(1.0))
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'pileup', 'shape', ch.SystMap()(1.0)) # Correlated: https://hypernews.cern.ch/HyperNews/CMS/get/b2g/1381.html
-        cb.cp().process([allbkgs[1]]).channel(chns).AddSyst(cb, 'jsf', 'shape', ch.SystMap()(1.0))###jsf and pileup change to pdfNew. Check ewk in process, and add it back later!!!!!!!
+  cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'pileup', 'shape', ch.SystMap()(1.0)) # Correlated: https://hypernews.cern.ch/HyperNews/CMS/get/b2g/1381.html
+  cb.cp().process([allbkgs[1]]).channel(chns).AddSyst(cb, 'jsf', 'shape', ch.SystMap()(1.0))###jsf and pileup change to pdfNew. Check ewk in process, and add it back later!!!!!!!
 
 	#if year=='2017':
 	#	cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'prefire', 'shape', ch.SystMap()(1.0))
@@ -165,6 +168,7 @@ def add_systematics(cb):
 	cb.cp().process([allbkgs[1]]).channel(chns).AddSyst(cb, 'muRFcorrdNewEwk', 'shape', ch.SystMap()(1.0))
 	cb.cp().process([allbkgs[2]]).channel(chns).AddSyst(cb, 'muRFcorrdNewQCD', 'shape', ch.SystMap()(1.0))
 	cb.cp().process(signal).channel(chns).AddSyst(cb, 'muRFcorrdNewSig', 'shape', ch.SystMap()(1.0)) # Correlated, PDF and QCD Scale (not recalculated in 2018); Ex: B2G-19-001/AN2018_322_v7
+
 
 
 def add_autoMCstat(cb):
@@ -206,16 +210,16 @@ def create_workspace(cb):
 
 
 	_bW0p0_tZ0p0_tH1p0='_bW0p0_tZ0p0_tH1p0'
-        _bW0p0_tZ0p5_tH0p5='_bW0p0_tZ0p5_tH0p5'
-        _bW0p0_tZ1p0_tH0p0='_bW0p0_tZ1p0_tH0p0'
-        _bW0p5_tZ0p25_tH0p25='_bW0p5_tZ0p25_tH0p25'
-        _bW1p0_tZ0p0_tH0p0='_bW1p0_tZ0p0_tH0p0'
+  _bW0p0_tZ0p5_tH0p5='_bW0p0_tZ0p5_tH0p5'
+  _bW0p0_tZ1p0_tH0p0='_bW0p0_tZ1p0_tH0p0'
+  _bW0p5_tZ0p25_tH0p25='_bW0p5_tZ0p25_tH0p25'
+  _bW1p0_tZ0p0_tH0p0='_bW1p0_tZ0p0_tH0p0'
 
-        _tW0p0_bZ0p0_bH1p0='_tW0p0_bZ0p0_bH1p0'
-        _tW0p0_bZ0p5_bH0p5='_tW0p0_bZ0p5_bH0p5'
-        _tW0p0_bZ1p0_bH0p0='_tW0p0_bZ1p0_bH0p0'
-        _tW0p5_bZ0p25_bH0p25='_tW0p5_bZ0p25_bH0p25'
-        _tW1p0_bZ0p0_bH0p0='_tW1p0_bZ0p0_bH0p0'
+  _tW0p0_bZ0p0_bH1p0='_tW0p0_bZ0p0_bH1p0'
+  _tW0p0_bZ0p5_bH0p5='_tW0p0_bZ0p5_bH0p5'
+  _tW0p0_bZ1p0_bH0p0='_tW0p0_bZ1p0_bH0p0'
+  _tW0p5_bZ0p25_bH0p25='_tW0p5_bZ0p25_bH0p25'
+  _tW1p0_bZ0p0_bH0p0='_tW1p0_bZ0p0_bH0p0'
 
 
 	BRconfStr=str(eval(sys.argv[1]))
@@ -234,12 +238,12 @@ def go(cb):
 	add_autoMCstat(cb)
 	create_workspace(cb)
 	#print_cb(cb)
-	
+
 
 if __name__ == '__main__':
 	cb = ch.CombineHarvester()
 	#cb.SetVerbosity(20)
-        _bW0p0_tZ0p0_tH1p0='_bW0p0_tZ0p0_tH1p0'
+  _bW0p0_tZ0p0_tH1p0='_bW0p0_tZ0p0_tH1p0'
 	_bW0p0_tZ0p5_tH0p5='_bW0p0_tZ0p5_tH0p5'
 	_bW0p0_tZ1p0_tH0p0='_bW0p0_tZ1p0_tH0p0'
 	_bW0p5_tZ0p25_tH0p25='_bW0p5_tZ0p25_tH0p25'
@@ -328,6 +332,7 @@ if __name__ == '__main__':
 	print'File: ',rfile
 	#ttbkgs = ['ttnobb','ttbb'] # ['ttjj','ttcc','ttbb','ttbj']
 	allbkgs = ['top','ewk','qcd']
+
 	dataName = 'data_obs'
 	tfile = TFile(rfile)
 	allHistNames = [k.GetName() for k in tfile.GetListOfKeys() if not (k.GetName().endswith('Up') or k.GetName().endswith('Down'))]
@@ -353,5 +358,6 @@ if __name__ == '__main__':
 	
 	masses = ch.ValsFromRange('900:1800|100')	
 	print 'masses: ',masses
+
 	go(cb)
 

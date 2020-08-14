@@ -7,8 +7,8 @@ setTDRStyle()
 R.gROOT.SetBatch(1)
 outDir = os.getcwd()+'/'
 
-lumi = 35.9
-discriminant = 'HT'#'minMlbST'
+lumi = 59.7
+discriminant = 'DnnTprime'#'minMlbST'
 rfilePostFix = '_rebinned_stat1p1'
 tempVersion = 'templatesCR_NewEl/'
 cutString = ''#SelectionFile'

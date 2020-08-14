@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 samples = {
-'DataEABCD':'SingleElectron',
+'DataEABCD':'EGamma',
 'DataMABCD':'SingleMuon',
 
 'TTM700BWBW':'TprimeTprime_M-700_TuneCP5_PSweights_13TeV-madgraph-pythia8_BWBW',
@@ -136,14 +136,14 @@ samples = {
 'BBM1700BHBH':'BprimeBprime_M-1700_TuneCP5_PSweights_13TeV-madgraph-pythia8_BHBH',
 'BBM1800BHBH':'BprimeBprime_M-1800_TuneCP5_PSweights_13TeV-madgraph-pythia8_BHBH',
 
-'DYMG200':'DYJetsToLL_M-50_HT-200to400_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8',
+#'DYMG200':'DYJetsToLL_M-50_HT-200to400_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8',
 'DYMG400':'DYJetsToLL_M-50_HT-400to600_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8',
 'DYMG600':'DYJetsToLL_M-50_HT-600to800_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8',
 'DYMG800':'DYJetsToLL_M-50_HT-800to1200_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8',
 'DYMG1200':'DYJetsToLL_M-50_HT-1200to2500_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8',
 'DYMG2500':'DYJetsToLL_M-50_HT-2500toInf_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8',
 
-'WJetsMG200':'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8',
+#'WJetsMG200':'WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8',
 'WJetsMG400':'WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8',
 'WJetsMG600':'WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8',
 'WJetsMG800':'WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8',

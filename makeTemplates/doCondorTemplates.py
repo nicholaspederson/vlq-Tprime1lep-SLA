@@ -5,7 +5,7 @@ if thisDir[-13:] == 'makeTemplates': runDir = thisDir[:-13]
 else: runDir = thisDir
 if os.getcwd()[-17:] == 'singleLepAnalyzer': os.chdir(os.getcwd()+'/makeTemplates/')
 outputDir = thisDir+'/'
-region='SR' #PS,SR,TTCR,WJCR,CR
+region='CR' #PS,SR,TTCR,WJCR,CR
 categorize=1 #1==categorize into t/W/b/j, 0==only split into flavor
 
 cTime=datetime.datetime.now()
@@ -13,28 +13,29 @@ date='%i_%i_%i'%(cTime.year,cTime.month,cTime.day)
 time='%i_%i_%i'%(cTime.hour,cTime.minute,cTime.second)
 pfix = 'templates'+region
 if not categorize: pfix='kinematics'+region
-pfix+='_July2019_With_Uncertainties'
+pfix+='_HTNtag4TT'
 
 iPlotList = [#distribution name as defined in "doHists.py"
       ###For signal region templates
-        'ST',
-	'Tp2Mass',
-	'Tp2MDnn',
-	'Tp2MST',
-	'DnnTprime',
-#	'HT',
+        #'ST',
+	#'Tp2Mass',
+	#'Tp2MDnn',
+	#'Tp2MST',
+	#'DnnTprime',
+	#'HT',
+	'HTNtag',
 
 	### Require 3 AK8s
-#	 'Tp2Mass',
-#         'Tp1Mass',
-#         'Tp2Pt',
-#         'Tp1Pt',
-#         'Tp1Eta',
-#         'Tp2Eta',
-#         'Tp1Phi',
-#         'Tp2Phi',
-#         'Tp1deltaR',
-#         'Tp2deltaR',
+	# 'Tp2Mass',
+        # 'Tp1Mass',
+        # 'Tp2Pt',
+        # 'Tp1Pt',
+        # 'Tp1Eta',
+        # 'Tp2Eta',
+        # 'Tp1Phi',
+        # 'Tp2Phi',
+        # 'Tp1deltaR',
+        # 'Tp2deltaR',
 
         # 'probSumDecay',  	###Don't require 3 AK8s
         # 'probSumFour',
@@ -52,28 +53,28 @@ iPlotList = [#distribution name as defined in "doHists.py"
 	# 'nZ',
 	
 	 #Not algorithm dependent
-#	'DnnTprime',
-#	'DnnWJets',
-#	'DnnTTbar',
-#        'tmass',
-#        'Wmass',
-#	'tpt',
-#	'Wpt',
-#	'tdrWb',
-#	'Wdrlep',	
-#	'isLepW',
-#	'HT',
-#	'ST',
-#	'JetPt', 
-#	'MET',   
-#	'NJets', 
-#	'NBJets',
-#	'NJetsAK8',
-#	'JetPtAK8',
-#	'lepPt', 
-#	'SoftDrop',
-#	'deltaRAK8',
-#	'minMlj',
+	# 'DnnTprime',
+	# 'DnnWJets',
+	# 'DnnTTbar',
+        # 'tmass',
+        # 'Wmass',
+	# 'tpt',
+	# 'Wpt',
+	# 'tdrWb',
+	# 'Wdrlep',	
+	# 'isLepW',
+	# 'HT',
+	# 'ST',
+	# 'JetPt', 
+	# 'MET',   
+	# 'NJets', 
+	# 'NBJets',
+	# 'NJetsAK8',
+	# 'JetPtAK8',
+	# 'lepPt', 
+	# 'SoftDrop',
+	# 'deltaRAK8',
+	# 'minMlj',
 #	'mindeltaR',
 #	'PtRel',
 #	'mindeltaRAK8',
@@ -146,7 +147,7 @@ iPlotList = [#distribution name as defined in "doHists.py"
 	# 'minMlbST'
 	]
 
-isEMlist = ['E','M']
+isEMlist = ['E','M','L']
 #isEMlist = ['L']
 
 #algolist = ['BEST','DeepAK8','DeepAK8DC']
@@ -155,17 +156,15 @@ if not categorize and 'algos' not in region and 'SR' not in region: algolist = [
 
 taglist = ['all']
 if categorize:
-	if region=='SR': 
-		#taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW','notV']
-		#taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH']
-		#taglist=['notVtH','notVtZ','notVbW','notV']
+	if region=='SR' or region=='SCR': 
 		taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW',
 			 'notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
-			 #'notV3pW0Z0H0T',
-			 #'notV2W0Z0H0T','notV2pW0Z0H1pT','notV2pW0Z1pH0pT','notV2pW1pZ0pH0pT',
-			 #'notV1W0Z0H0T','notV1W0Z1H0T','notV1W0Z0H1pT','notV1W0Z1H1pT','notV1W0Z2pH0pT','notV1W1Z0H0pT','notV1W1Z1pH0pT','notV1W2pZ0pH0pT',
-			 #'notV0W0Z0H0T','notV0W0Z1H0T','notV0W0Z0H1pT','notV0W0Z1H1pT','notV0W0Z2pH0pT','notV0W1Z0H0pT','notV0W1Z1pH0pT','notV0W2pZ0pH0pT']
-	elif 'CR' in region: taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW','notV']
+                if 'BB' in pfix:
+			taglist=['taggedtWtW','taggedbZtW','taggedbHtW','notVbH','notVbZ','notVtW',
+				 'notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
+
+	elif 'CR' in region: 
+		taglist=['dnnLargeT','dnnLargeH','dnnLargeZ','dnnLargeW','dnnLargeB','dnnLargeJttbar','dnnLargeJwjet']
 	else: taglist = ['all']
 
 outDir = outputDir+pfix+'/'

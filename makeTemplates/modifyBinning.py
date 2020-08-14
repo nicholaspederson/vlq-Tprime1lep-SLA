@@ -32,6 +32,7 @@ start_time = time.time()
 iPlot='DnnTprime'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 folder = 'templatesSR_June2020TT'
+
 if len(sys.argv)>2: folder=str(sys.argv[2])
 cutString = ''
 templateDir = os.getcwd()+'/'+folder+'/'+cutString
@@ -52,6 +53,7 @@ normalizePDF    = True #only for signals
 if 'kinematics' in folder:
 	normalizeRENORM = False #only for signals
 	normalizePDF    = False #only for signals
+
 #X53X53, TT, BB, HTB, etc --> this is used to identify signal histograms for combine templates when normalizing the pdf and muRF shapes to nominal!!!!
 
 sigName = 'TT' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
@@ -61,6 +63,7 @@ if 'BB' in folder:
 massList = range(900,1800+1,100)
 if sigName == 'BB': massList.append(900)
 sigProcList = [sigName+'M'+str(mass) for mass in massList]
+
 
 bkgProcList = ['top','ewk','qcd'] #put the most dominant process first
 era = "13TeV"
@@ -75,7 +78,7 @@ if len(sys.argv)>4: FullMu=bool(eval(sys.argv[4]))
 rebinCombine = True #else rebins theta templates ## COME SET TO TRUE WHEN DOING SR OR CR isCatagorized
 #print "rebin combine Before: ", rebinCombine
 if len(sys.argv)>5: rebinCombine=bool(eval(sys.argv[5])) 
-	
+
 if rebinCombine:
 	dataName = 'data_obs'
 	upTag = 'Up'
@@ -125,7 +128,6 @@ if 'TT' in folder:
 	if rebinCombine: rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' not in file and ('bW' in file or 'kinematics' in folder) and combinefile in file and '_'+iPlot+'_' in file.split('/')[-1]]
 	else: rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' not in file and ('bW' in file or 'kinematics' in folder) and combinefile not in file and '_'+iPlot+'_' in file.split('/')[-1]]
 
-
 print "templateDir: ",templateDir
 print "file: ",file
 print "iPlot: ",iPlot
@@ -148,6 +150,8 @@ for hist in datahists:
 	DataHists[channel] = tfile.Get(hist).Clone()
 	#DataHists[channel].Rebin(20)
 
+#print datahists
+
 totBkgHists = {}
 for hist in datahists:
 	channel = hist[hist.find('fb_')+3:hist.find('__')]
@@ -160,8 +164,10 @@ for hist in datahists:
 			print "WARNING! Skipping this process!!!!"
 			pass
 	#totBkgHists[channel].Rebin(20)
+
 ## Not currently using this -- it's for rebinning on signal stats.
 ##SigHists = {}
+
 # for hist in datahists:
 # 	channel = hist[hist.find('fb_')+3:hist.find('__')]
 # 	if not rebinCombine: SigHists[channel]=tfile.Get(hist.replace('__'+dataName,'__sig')).Clone()
@@ -238,7 +244,8 @@ for chn in totBkgHists.keys():
 
 	## Going right to left -- if the last entry isn't 0 add it
 	if iPlot != 'DnnTprime' and iPlot != 'DnnBprime' and 'SR' in folder and xbinsListTemp[chn][-1]!=0: xbinsListTemp[chn].append(0)
-	if 'Large' in chn and 'LargeJ' not in chn and 'templatesCR' in folder and xbinsListTemp[chn][-1]!=1: xbinsListTemp[chn].append(1)	
+	if 'Large' in chn and 'LargeJ' not in chn and 'templatesCR' in folder and xbinsListTemp[chn][-1]!=1: xbinsListTemp[chn].append(1)
+
 
 	if (iPlot == 'DnnTprime' or iPlot == 'DnnBprime') and 'templatesSR' in folder:
 		if xbinsListTemp[chn][-1]>0.5: xbinsListTemp[chn].append(0.5)
@@ -378,7 +385,6 @@ for rfile in rfiles:
 				muRFcorrdNewUpHist.SetBinError(ibin,histList[indCorrdUp].GetBinError(ibin))
 				muRFcorrdNewDnHist.SetBinError(ibin,histList[indCorrdDn].GetBinError(ibin))
 			if ('sig__mu' in hist and normalizeRENORM) or (rebinCombine and '__'+sigName in hist and '__mu' in hist and normalizeRENORM): #normalize the renorm/fact shapes to nominal
-
 				if rebinCombine and '__'+sigName in hist: 
 					signame = hist.split('__')[1]
 					if sigName not in signame: print "DIDNT GET SIGNAME",signame
@@ -427,7 +433,6 @@ for rfile in rfiles:
 					if sigName not in signame: print "DIDNT GET SIGNAME",signame
 				scalefactorUp = pdfSFsUp[signame]
 				scalefactorDn = pdfSFsDn[signame]
-
 				pdfNewUpHist.Scale(scalefactorUp)
 				pdfNewDnHist.Scale(scalefactorDn)
 				#pdfNewUpHist.Scale(renormNomHist.Integral()/pdfNewUpHist.Integral())
@@ -776,7 +781,6 @@ for proc in bkgProcList+sigProcList:
 postFix = ''
 if addShapes: postFix+='_addShps'
 if not addCRsys: postFix+='_noCRunc'
-
 if rebinCombine: out=open(templateDir+'/'+combinefile.replace('templates','yields').replace('.root','_rebinned_stat'+str(stat).replace('.','p'))+postFix+'.txt','w')
 else: out=open(templateDir+'/'+thetafile.replace('templates','yields').replace('.root','_rebinned_stat'+str(stat).replace('.','p'))+postFix+'.txt','w')
 
