@@ -1,74 +1,76 @@
-	First off, all of these scripts are important but more than this will be needed to run combine successfully. Follow this documentation to import all the combine tools: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/ . Combine must be ran in sl7 in order to function.
+## Combine setup
 
-MAKING DATA CARDS
+Combine should be run on an **SL7** machine. Follow the setup instructions for CMSSW_10_2_13 from the Combine Harvester documentation, in the [Getting Started section](https://cms-analysis.github.io/CombineHarvester/index.html).
+
+Important documentation websites:
+ * Higgs Combine: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/
+   * Toys and snapshots: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/runningthetool/#toy-data-generation
+   * Limits and blinding: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/commonstatsmethods/#asymptotic-frequentist-limits
+   * Goodness of fit: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/commonstatsmethods/#goodness-of-fit-tests
+   * Fit diagnostics: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/nonstandard/#fitting-diagnostics
+   * Impacts: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/nonstandard/#nuisance-parameter-impacts
+   * Channel masking: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/nonstandard/#channel-masking
+ * Combine Harvester tool package: https://cms-analysis.github.io/CombineHarvester/index.html
+   * Getting Started on that page has install instructions
+   * Post-fit plots: https://cms-analysis.github.io/CombineHarvester/post-fit-shapes-ws.html
+   * Limit collection: https://cms-analysis.github.io/CombineHarvester/limits.html
+
+
+## Making ROOT files
+
+Go back to makeTemplates and search for "Combine" in `doTemplates.py` and `modifyBinning.py`. Your ROOT files need to have the following formatting:
+ * Channel__Process(__UncertUp/Down)
+ * Data has the process name "data_obs"
+ * Signals should all appear in the same file with process names like "signal$MASS", for $MASS = some number. 
+ * No background or signal distributions should have integrals of 0 in any category -- fill in zeroes with some small number
+
+## Making data cards
 	
-	This must be the first step done in Combine. Any of the tests described below can be done in any order but all of them rely on the existence of data cards. The main script we use to make data cards is dataCards.py. Essentially, what this script will do is grab input root files, analyze the channels for that region, and make data cards from them for each mass point. In dataCards.py, you will need to specify which signal to analyze over, which uncertainties should be added to the data cards, a specification of what the output directory should be called, and point the script to the correct root file you wish it to run over. The output directory will look something like /limits_*specified directory name*/*Branching ratio*/*channel names and cmb*/*mass points and common*/*.txt . All of the txt files are data cards. Within cmb/*mass points*/, you should notice a file called workspace.root . This file was made by grabbing each of the datacards in that area then merging them into one file. This file will be very important for running the various tests described below. 
+This is the first step for running Combine. All of the procedures below use the same data cards. 
 
-	When it comes to actually running dataCards.py, I made a shell script called runDataCards.sh that will run dataCards.py for each branching ratio specifiec in the .sh file. Looping over the branching ratios in dataCards.py will result in  a crash. Once all the data cards have been made you will be ready then to run the various things described below.
+ * `dataCard.py`: edit this script to instruct CombineHarvester to open certain ROOT files, learn channels from them, and add certain systematics to the data cards. 
+ * `runDataCard.sh`: a wrapper to call dataCard.py with various arguments, e.g. branching ratio strings or control/signal regions. **Find examples of python script arguments here.**
 
-SIGNAL INJECTION TEST
+Essentially, what `dataCard.py` will do is grab input root files, analyze the channels for that region, and make data cards from them for each mass point. You will need to specify which signal to analyze, which ROOT files to open, which uncertainties should be added to the data cards, and what the output directory should be called. The output directory will look something like `limits_(specified directory name)/(branching ratio)/(channel names)/(mass points)`. All of the text files are data cards. Within `limits_(specified directory name)/(branching ratio)/cmb/(mass points)/` you should see a file called `workspace.root`. This file holds a `RooFit` workspace created from the data card that combines all the channels. 
 
-	The first step is to run a fit diagnostics test. To run this, simply use the following command in your terminal: combine -M FitDiagnostics -d workspace.root --saveWorkspace <maybe other commands>. Other commands I have used that prove to be useful is -n (allowing you to have some customization of the name of the output files) and --plots (Will make .png image files. All of these are also in the output fitDiagnostics.root). The output of this test will produce two root files: fitDiagnostics.root and higgsCombineTest.FitDiagnostics.mH120.root. If you want a correlation plot, you will be able to get them from adding --plots to the command. If you display the correlation.png or try to draw it from fitDiagnostics.root, you will notice that the plot is unreadable. Enter in the following commands after opening the root file to fix that problem.
+## Running limits
 
-TCanvas *c1 = new TCanvas("c1","c1",1200, 600)
-gStyle->SetOptStat(0)
-gPad->SetLeftMargin(0.25)
-gPad->SetBottomMargin(0.15)
-TH2D *second = (TH2D*)_file0->Get("covariance_fit_b")
-second->GetYaxis()->SetRange(1,26)
-second->GetXaxis()->SetRange(1,26)
-second->GetYaxis()->SetRange(second->GetNbinsY()-26,second->GetNbinsY())
-gStyle->SetPaintTextFormat("1.2f")
-second->SetMarkerSize(1.0)
-second->Draw("colz text")
+To run Asymptotic CLs limits and plot the results: 
 
-	The next step is to run fitResults.py. The input of this file is the output from the first fitDiagnostics test described above. Place the correct root file there and simply python -u fitResults.py to run it. No need for a log file since as of right now there is no text output. Once this script has finished running, it will create the file initialFitWorkspace.root. 
+ * `runLimits.py`: this script prepares a workspace file and runs **blinded** Asymptotic CLs limits. 
+   * for this analysis, a fit is performed with signal region channels masked, and then the fit results are propagated to a new file called `morphedWorkspace.root`
+   * Combine is called with the signal region channels unmasked to compute the limit. The option `--run=blind` is used for blinding.
+   * Combine Harvester's limit collection script is used to write a .json file with the results
+ * `PlotLimits.py`: this is a copy of the Theta limit plotter so that the graphics are the same. It reads the .json file to fill TGraphs. The plotter from Combine Harvester did not have a clean way to "blind" the plot. 
+    * Several arguments are required to set up a meaningful output file name for the plots
+    * The "multiplier" argument is **critical**: if your signal histograms are scaled to anything other than 1 pb cross section, give that value here in units of pb.
+ * `runAllLimits.sh`: a wrapper to call runLimits.py for each branching fraction, and finally PlotLimits.py. **Find examples of python script arguments here.**
 
-	After this, you will want to use initial FitWorkspace.root to generate MC toys. This can be done with combine -M GenerateOnly -d initialFitWorkspace.root --snapshotName initialFit --toysFrequentist --bypassFrequentistFit -t <# of toys> --saveToys --expectSignal <r> -n <specified name>. This will create a root file like higgsCombine<name>.GenerateOnly.mH120.123456.root.
+## Signal injection tests
 
-	Now it is time for to run fit diagnostics over each of the generated toys made previously. The command to do this is quite similar to before:  combine -M FitDiagnostics -d initialFitWorkspace.root --snapshotName initialFit --robustFit=1 --rMin -5 --rMax 5 --skipBOnlyFit -t <# of toys> -n <name> --toysFile higgsCombine<name>.GenerateOnly.mH120.123456.root
+B2G requires several signal injection tests for preapproval. The "bias test" probes whether the fit returns measurable signal when none was present ("injection" of 0 pb as the cross section). The "injection tests" probe whether the fit returns the correct amount of signal when a certain cross section is injected into the toy data.
 
-	Once this is finished, you are ready to make the signal injection plot. Copy over signalInjectionPlotter into whichever area you wish to make these plots. Specify which input root file to use (should be the output of this last fit diagnostics test), and run the plotting script. You will get two .png files from this. One of them will be for sigstrength and the other sigpull.
+ * `runSignalInjectionToys.py`: a script to run all the combine calls
+   * First, it checks for a post-fit workspace with a snapshop and creates it if needed. The default is to fit to data in the CR, or to fit CR data with SR channels masked. 
+   * Second, it loads that fit snapshot to generate N toys with a certain `--expectSignal R` injection setting.
+   * Third, it fits the N toys within a reasonable range around the injected signal amount.
+ * `signalInjectionPlotter.py`: this script opens the ROOT file created from fitting the toys and makes pull plots with Gaussian fits. 
+ * `runAllSingletTests.sh`: a wrapper to call the previous scripts in combination with other tests. **Find examples of python script arguments here.**
 
 
+## Impact plots
 
-MAKING IMPACT PLOTS
+Impact plots are also required for preapproval and show how various nuisance parameters affect the best fit signal strength.
 
-	Navigate to the cmb area you wish to make an impact plot. The first step is to run the initial fit command: combineTool.py -M Impacts -d workspace.root -m <mass value> --doInitialFit --robustFit 1 
-
-	After this, you will want to run a similar command. However, this one will run over each nuisance parameter and make a root file for each parameter. Run combineTool.py -M Impacts -d workspace.root -m <mass> --robustFit 1 --doFits 
-
-	Put that output into a .json file: combineTool.py -M Impacts -d workspace.root -m <mass> -o impacts.json
+ * `runImpacts.py`: this script runs the set of combine commands needed to create the impact plot. It has options for masking/unmasking SR channels and assumes that an asimov dataset (-t -1) should be used in the SR, while data is used in the CR.
+ * `plotImpacts.py`: a copy of the plotter from Combine Harvester. 
+ * `runAllSingletTests.sh`: a wrapper to call the previous scripts in combination with other tests. **Find examples of python script arguments here.**
 	
-	Making impact plot. Output will be a .pdf file. plotImpacts.py -i impacts.json -o impacts
+## Goodness of fit
 
-	
+This method is only run in the control region for now. It is difficult to test goodness of fit in a blinded way in the signal region. 
 
-GOODNESS OF FIT TEST
-
-	Begin by running goodness of fit off of the data generating no toys: combine -M GoodnessOfFit workspace.root --algo=saturated
-	
-	Next, run goodness of fit and generate X number or toys: combine -M GoodnessOfFit workspace.root --algo=saturated -t <# of toys> --toysFrequentist --fixedSignalStrength=0 -s 123456. This will create an output root file.
-
-	For the plotting, run GoFPlotter.py. The input file should be the output from the GoodnessOfFit command you ran that generated X number of toys. For the value of the hline, look at the output of the first command ran for running over data. The value given there is the value you should set the hline to. Run this script and it will create a GoF.png file. The name of the file can be specified in the script itself.
-
-
-MAKING LIMIT PLOTS
-
-	To get expected asymptotic limit values for individual masses, run combine -M AsymptoticLimits workspace.root --run=blind --cminDefaultMinimizerStrategy 0 within each mass directory you wish to get expected limits. If you want to make limit plots, you will not be able to use the results from this. Also note that removing --run=blind will unblind your analysis and give you observed results in addition to the expected.
-
-	If you want to make limit plots, then you will need to go into your BR string directory. From there, run this command: combineTool.py -M Asymptotic -d cmb/*/workspace.root --there -n .limit --run=blind --parallel 4. This command will create root files in the mass directories that have .limit in the name. 
-
-	Next you will want to take the output from the previous command and toss it into a .json file. combineTool.py -M CollectLimits cmb/*/*.limit.* --use-dirs -o limits.json
-
-	The final step is to plot the limit. All you need to do is point the plotter to the json file that was just created, and run the plotter. 
-
-
-HELPFUL DOCUMENTATION FOR REFERENCE
-
-limits help: http://cms-analysis.github.io/CombineHarvester/limits.html
-
-Fit diagnostics, impact plots, and channel masking: http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/part3/nonstandard/#nuisance-parameter-impacts
-
-Goodness of Fit: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideHiggsAnalysisCombinedLimit#Goodness_of_fit_tests
+ * `runGOF.py`: calls the combine commands to calculated a "saturated chi2" value from data and from N toys.
+ * `GofPlotter.py`: plots the chi2 values from the toys and extracts the data chi2 value to plot as a red line.
+ * `runAllSingletTests.sh`: a wrapper to call the previous scripts in combination with other tests. **Find examples of python script arguments here.**
 
