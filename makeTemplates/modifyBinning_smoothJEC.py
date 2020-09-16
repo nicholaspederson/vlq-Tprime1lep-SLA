@@ -25,9 +25,10 @@ start_time = time.time()
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #cutString = 'splitLess/'#BB_templates/'
-templateDir = os.getcwd()+'/templatesCR_June2020TT/'
+templateDir = os.getcwd()+'/templatesSR_June2020TT/'
 
 rebinCombine = True
+smoothLOWESS = True
 
 scaleLumi = False
 #lumiScaleCoeffEl = 2530./2600.
@@ -35,14 +36,15 @@ scaleLumi = False
 lumiscale = 2318./2258.
 
 sigName = 'TT' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
+if 'BB' in templateDir: sigName = 'BB'
 skipcode = 'bW'
 if sigName == 'BB': skipcode = 'tW'
 dataName = 'DATA'
 upTag = '__plus'
 downTag = '__minus'
 if rebinCombine:
-    upTag = '2016Up'
-    downTag = '2016Down'
+    upTag = 'Up'
+    downTag = 'Down'
 
 def findfiles(path, filtre):
     for root, dirs, files in os.walk(path):
@@ -50,9 +52,9 @@ def findfiles(path, filtre):
             yield os.path.join(root, f)
 
 #Setup the selection of the files to be rebinned: HiggsTagTemplate_tW1p0_bZ0p0_bH0p0_BBM1800.root
-rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' in file and 'smoothed' not in file and skipcode in file]
+rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' in file and '0p3' in file and 'smoothed' not in file and skipcode in file and 'BKGNORM' not in file and 'Combine' not in file and 'plots' not in file] 
 if rebinCombine: 
-    rfiles = [file for file in findfiles(templateDir, '*.root') if '_Combine_' in file and 'rebinned' in file and 'smoothed' not in file and skipcode in file]
+    rfiles = [file for file in findfiles(templateDir, '*.root') if '_Combine_' in file and 'rebinned' in file and '0p3' in file and 'smoothed' not in file and skipcode in file and 'BKGNORM' not in file]
 
 tfile = TFile(rfiles[0])
 
@@ -68,7 +70,8 @@ for rfile in rfiles:
 	tfiles[iRfile] = TFile(rfile)	
         allhists = [hist.GetName() for hist in tfiles[iRfile].GetListOfKeys()]
 
-	outputRfiles[iRfile] = TFile(rfile.replace('.root','_smoothed.root'),'RECREATE')     
+        if smoothLOWESS: outputRfiles[iRfile] = TFile(rfile.replace('.root','_smoothedLOWESS.root'),'RECREATE')     
+        else: outputRfiles[iRfile] = TFile(rfile.replace('.root','_smoothed.root'),'RECREATE')     
 
 	print "PROGRESS:"
 	rebinnedHists = {}
@@ -80,34 +83,88 @@ for rfile in rfiles:
             if 'jec' not in hist and 'jer' not in hist: rebinnedHists[hist].Write()   
 
 
-        jecUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if 'jec'+upTag in k.GetName()]
-        jerUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if 'jer'+upTag in k.GetName()]
+        jecUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if 'jec2018'+upTag in k.GetName()]
+        jerUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if 'jer2018'+upTag in k.GetName()]
 
         for hist in jecUphists+jerUphists:
-            print hist
+            #print hist
+
+            if 'qcd' in hist: # don't bother
+                rebinnedHists[hist].Write()
+                rebinnedHists[hist.replace(upTag,downTag)].Write()
+            else:
+
+                if smoothLOWESS: ## Local regression method
+                    frac = 0.5
+
+                    up = rebinnedHists[hist].Clone()
+                    down = rebinnedHists[hist.replace(upTag,downTag)].Clone()
+                    central = rebinnedHists[hist.replace('__jec2018'+upTag,'').replace('__jer2018'+upTag,'')]
                     
-            up = rebinnedHists[hist]
-            down = rebinnedHists[hist.replace(upTag,downTag)]            
-            central = rebinnedHists[hist.replace('__jec'+upTag,'').replace('__jer'+upTag,'')]
-            
+                    upratio = up.Clone('upratio')
+                    upratio.Divide(central)
+                    
+                    dnratio = down.Clone('dnratio')
+                    dnratio.Divide(central)
+                    
+                    upgraph = TGraph()
+                    dngraph = TGraph()
+                    
+                    for ibin in range(1,up.GetNbinsX()+1):
+                        upgraph.SetPoint(ibin-1, upratio.GetXaxis().GetBinCenter(ibin), upratio.GetBinContent(ibin))
+                        dngraph.SetPoint(ibin-1, dnratio.GetXaxis().GetBinCenter(ibin), dnratio.GetBinContent(ibin))
+                    
+                    upratio.Delete()
+                    dnratio.Delete()
 
-            upsum = 0
-            downsum = 0
-            centralsum = 0
-            for ibin in range(1,up.GetNbinsX()+1):
-                upsum += up.GetBinContent(ibin)
-                downsum += down.GetBinContent(ibin)
-                centralsum += central.GetBinContent(ibin)
+                    upsmooth = TGraphSmooth("normal")
+                    dnsmooth = TGraphSmooth("normal")
 
-            upratio = upsum/centralsum
-            downratio = downsum/centralsum
+                    upgraph = upsmooth.SmoothLowess(upgraph,"",frac)
+                    dngraph = dnsmooth.SmoothLowess(dngraph,"",frac)
 
-            for ibin in range(1,up.GetNbinsX()+1):
-                up.SetBinContent(ibin, central.GetBinContent(ibin)*upratio)
-                down.SetBinContent(ibin, central.GetBinContent(ibin)*downratio)
+                    for ibin in range(1,up.GetNbinsX()+1):
+                        newupratio = upgraph.Eval(up.GetXaxis().GetBinCenter(ibin))
+                        newdnratio = dngraph.Eval(down.GetXaxis().GetBinCenter(ibin))
+                        centralval = central.GetBinContent(ibin)
+                        up.SetBinContent(ibin, newupratio*centralval)
+                        down.SetBinContent(ibin, newdnratio*centralval)
 
-            up.Write()
-            down.Write()
+                    if central.Integral() > 0 and up.Integral() > 0:
+                        up.Write()
+                        down.Write()
+                    else:
+                        rebinnedHists[hist].Write()
+                        rebinnedHists[hist.replace(upTag,downTag)].Write()
+
+                else: ## smooth with 5-bin rolling average window
+                    upsum = 0
+                    downsum = 0
+                    centralsum = 0
+                    for ibin in range(1,up.GetNbinsX()+1):
+                        upsum = 0
+                        downsum = 0
+                        centralsum = 0
+                        for jbin in range(ibin-2,ibin+3):
+                            if jbin < 0 or jbin > up.GetNbinsX(): continue
+                    
+                            upsum += up.GetBinContent(jbin)
+                            downsum += down.GetBinContent(jbin)
+                            centralsum += central.GetBinContent(jbin)
+                        
+                        if centralsum != 0:
+                            upratio = upsum/centralsum
+                            downratio = downsum/centralsum
+                        else:
+                            # leave things alone if the central value was 0 (ex: QCD)
+                            upratio = up.GetBinContent(ibin)
+                            downratio = down.GetBinContent(ibin)
+
+                        up.SetBinContent(ibin, central.GetBinContent(ibin)*upratio)
+                        down.SetBinContent(ibin, central.GetBinContent(ibin)*downratio)
+
+                    up.Write()
+                    down.Write()
 			
 	tfiles[iRfile].Close()
 	outputRfiles[iRfile].Close()
