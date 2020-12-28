@@ -17,7 +17,10 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = 'root://cmseos.fnal.gov//store/user/jmanagan/FWLJMET102X_1lep2018Dnn_Mar2020_step2hadds'
+step1Dir = 'root://cmseos.fnal.gov//store/user/escharni/FWLJMET102X_1lep2018_Nov2020_step1hadds'
+
+isatest = False
+if len(sys.argv) == 1: isatest = True
 
 iPlot = 'DnnTprime' #minMlb' #choose a discriminant from plotList below!
 if len(sys.argv)>2: iPlot=sys.argv[2]
@@ -25,6 +28,9 @@ region = 'CR'
 if len(sys.argv)>3: region=sys.argv[3]
 isCategorized = False
 if len(sys.argv)>4: isCategorized=int(sys.argv[4])
+
+if 'PS' not in region and 'CR2j' not in region: step1Dir = 'root://cmseos.fnal.gov//store/user/escharni/FWLJMET102X_1lep2018_Nov2020_step2'
+
 doJetRwt= 1
 doTopRwt= 0
 doAllSys= True
@@ -51,7 +57,7 @@ bkgList = [
 	'DYMG400','DYMG600','DYMG800','DYMG1200','DYMG2500','WJetsMG400','WJetsMG600','WJetsMG800','WJetsMG1200','WJetsMG2500',
 	'TTJetsHad0','TTJetsHad700','TTJetsHad1000','TTJetsSemiLep0','TTJetsSemiLep700','TTJetsSemiLep1000','TTJets2L2nu0','TTJets2L2nu700','TTJets2L2nu1000',
 	'TTJetsPH700mtt','TTJetsPH1000mtt','Ts','Tbt','Tt','TtW','TbtW','TTWl','TTZl',
-	'WW','WZ','ZZ','ttHToNonbb','ttHTobb','QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000'
+	'WW','WZ','ZZ','ttHToNonbb','ttHTobb','QCDht300','QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000'
 	]
 
 dataList = [
@@ -134,6 +140,10 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
         'probb':('dnn_B_DeepAK8Calc_PtOrdered',linspace(0,1,51).tolist(),';B score'),  ## replace with AlgoCalc if needed
         'probh':('dnn_H_DeepAK8Calc_PtOrdered',linspace(0,1,51).tolist(),';H score'),  ## change back for BEST
         'probj':('dnn_J_DeepAK8Calc_PtOrdered',linspace(0,1,51).tolist(),';J score'),
+        'probj1':('dnn_J_DeepAK8Calc_PtOrdered[0]',linspace(0,1,31).tolist(),';J score jet 1 (low SD mass)'),
+        'probj2':('dnn_J_DeepAK8Calc_PtOrdered[1]',linspace(0,1,31).tolist(),';J score jet 2 (low SD mass)'),
+        'probj1fake':('dnn_J_DeepAK8Calc_PtOrdered[0]',linspace(0,1,31).tolist(),';J score jet 1 (W/t)'),
+        'probj2fake':('dnn_J_DeepAK8Calc_PtOrdered[1]',linspace(0,1,31).tolist(),';J score jet 2 (W/t)'),
         'probt':('dnn_T_DeepAK8Calc_PtOrdered',linspace(0,1,51).tolist(),';t score'),
         'probw':('dnn_W_DeepAK8Calc_PtOrdered',linspace(0,1,51).tolist(),';W score'),
         'probz':('dnn_Z_DeepAK8Calc_PtOrdered',linspace(0,1,51).tolist(),';Z score'),
@@ -165,8 +175,10 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
 	'MET'   :('corr_met_MultiLepCalc',linspace(0, 1500, 51).tolist(),';#slash{E}_{T} [GeV];'),
 	'METmod'   :('corr_metmod_MultiLepCalc',linspace(0, 1500, 51).tolist(),';modified #slash{E}_{T} [GeV];'),
 	'NJets' :('NJets_JetSubCalc',linspace(0, 15, 16).tolist(),';jet multiplicity;'),
-	'NBJets':('NJetsCSVwithSF_JetSubCalc',linspace(0, 10, 11).tolist(),';b tag multiplicity;'),
-	'NBJetsNoSF':('NJetsCSV_JetSubCalc',linspace(0, 10, 11).tolist(),';b tag multiplicity;'),
+	'NBJets':('NJetsDeepCSVwithSF_JetSubCalc',linspace(0, 10, 11).tolist(),';b tag multiplicity;'),
+        'NBJetsNoSF':('NJetsDeepCSV_JetSubCalc',linspace(0, 10, 11).tolist(),';b tag multiplicity;'),
+        'NBDeepJets':('NJetsDeepFlavwithSF_JetSubCalc',linspace(0, 10, 11).tolist(),';b tag multiplicity;'),
+        'NBDeepJetsNoSF':('NJetsDeepFlav_JetSubCalc',linspace(0, 10, 11).tolist(),';b tag multiplicity;'),
 	'NJetsAK8':('NJetsAK8_JetSubCalc',linspace(0, 8, 9).tolist(),';AK8 Jet multiplicity;'),
 	'JetPtAK8':('theJetAK8Pt_JetSubCalc_PtOrdered',linspace(0, 1500, 51).tolist(),';AK8 Jet p_{T} [GeV];'),
 	'JetPtBinsAK8':('theJetAK8Pt_JetSubCalc_PtOrdered',bigbins,';AK8 Jet p_{T} [GeV];'),
@@ -246,7 +258,7 @@ for cat in catList:
  	for data in dataList: 
 		print '-------------------------'
 		tTreeData[data]=readTreeNominal(samples[data],step1Dir) ## located in utils.py
- 		datahists.update(analyze(tTreeData,data,cutList,False,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
+ 		if not isatest: datahists.update(analyze(tTreeData,data,cutList,False,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  		if catInd==nCats: 
 			print 'deleting',data
 			del tTreeData[data]
@@ -258,7 +270,7 @@ for cat in catList:
 				for ud in ['Up','Down']:
 					print "        "+syst+ud
 					tTreeBkg[bkg+syst+ud]=readTreeShift(samples[bkg],syst.upper()+ud.lower(),step1Dir) ## located in utils.py
- 		bkghists.update(analyze(tTreeBkg,bkg,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
+ 		if not isatest: bkghists.update(analyze(tTreeBkg,bkg,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  		if catInd==nCats:
 			print 'deleting',bkg
 			del tTreeBkg[bkg]
@@ -275,7 +287,7 @@ for cat in catList:
 					for ud in ['Up','Down']:
 						print "        "+syst+ud
 						tTreeSig[sig+decay+syst+ud]=readTreeShift(samples[sig+decay],syst.upper()+ud.lower(),step1Dir)
- 	 		sighists.update(analyze(tTreeSig,sig+decay,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
+ 	 		if not isatest: sighists.update(analyze(tTreeSig,sig+decay,cutList,doAllSys,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
  	 		if catInd==nCats: 
 				print 'deleting',sig+decay
 				del tTreeSig[sig+decay]
