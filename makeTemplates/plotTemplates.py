@@ -14,22 +14,28 @@ start_time = time.time()
 lumi=59.7 #for plots #56.1 #
 lumiInTemplates= str(targetlumi/1000).replace('.','p') # 1/fb
 
-iPlot='HTNtag'
+iPlot='probj'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
-region='CR' #SR,TTCR,WJCR
+region='CR2j' #SR,TTCR,WJCR
 if len(sys.argv)>2: region=str(sys.argv[2])
-isCategorized=True
+isCategorized=False
 if len(sys.argv)>3: isCategorized=bool(eval(sys.argv[3]))
 pfix='templates'+region
 if not isCategorized: pfix='kinematics'+region
-pfix+='_HTNtagTT'
+pfix+='_Nov2020TT_HTcorr'
 if len(sys.argv)>4: pfix=str(sys.argv[4])
 templateDir=os.getcwd()+'/'+pfix+'/'
 
 print 'Plotting',region,'is categorized?',isCategorized
 
-isRebinned='' #post for ROOT file names
-if len(sys.argv)>7: isRebinned='_rebinned_stat'+str(sys.argv[7])
+isRebinned=''#_rebinned_stat0p3' #post for ROOT file names
+if len(sys.argv)>7: 
+        if 'CR' in region: 
+                isRebinned='_chi2_rebinned_stat'+str(sys.argv[7])
+        elif 'TR' in region:
+                isRebinned='_rebinned_'+str(sys.argv[7])
+        else: 
+                isRebinned='_rebinned_stat'+str(sys.argv[7])
 BRstr=''
 if isCategorized and 'BB' in pfix: BRstr='tW0p5_bZ0p25_bH0p25_'
 elif isCategorized: BRstr='bW0p5_tZ0p25_tH0p25_'
@@ -46,7 +52,7 @@ else:
         sig2='TTM1500' #  choose the 2nd signal to plot
         sig2leg='T#bar{T} (1.5 TeV)'
 drawNormalized = False # STACKS CAN'T DO THIS...bummer
-scaleSignals = True
+scaleSignals = False
 if not isCategorized and 'CR' not in region: scaleSignals = True
 sigScaleFact = 400
 if 'SR' in region: sigScaleFact = 10
@@ -60,14 +66,14 @@ if '53' in sig1: bkgHistColors = {'top':kRed-9,'ewk':kBlue-7,'qcd':kOrange-5} #X
 elif 'HTB' in sig1: bkgHistColors = {'ttbar':kGreen-3,'wjets':kPink-4,'top':kAzure+8,'ewk':kMagenta-2,'qcd':kOrange+5} #HTB
 else: bkgHistColors = {'top':kAzure+8,'ewk':kMagenta-2,'qcd':kOrange+5} #TT
 
-if len(isRebinned)>0: systematicList = ['pileup','jec','pdfNew','muRFcorrdNewTop','muRFcorrdNewEwk','muRFcorrdNewQCD','btag','jsf','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag','trigeffEl','trigeffMu']
-else: systematicList = ['muRFcorrd','pileup','trigeffEl','trigeffMu','jsf','jec','btag','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag']
+if len(isRebinned)>0 and 'TR' not in region: systematicList = ['pileup','trigeffEl','trigeffMu','jec2018','muRFcorrdNewTop','muRFcorrdNewEwk','muRFcorrdNewQCD','jsf','Teff','Tmis2018','Heff','Hmis2018','Zeff','Zmis2018','Weff','Wmis2018','Beff','Bmis2018','jer2018','pdfNew20172018','toppt','dnnJ']
+else: systematicList = ['muRFcorrd','trigeffEl','trigeffMu','pileup','jsf','jec','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','jer','dnnJ','toppt']
 
 doAllSys = True
 print 'doAllSys: ',doAllSys,'systematicList: ',systematicList
 addCRsys = False
 doNormByBinWidth=False
-if len(isRebinned)>0 and 'stat1p1' not in isRebinned: doNormByBinWidth = True
+if len(isRebinned)>0 and 'stat1p1' not in isRebinned and 'mvagof' not in isRebinned: doNormByBinWidth = True
 doOneBand = True
 # MAY NEED TO RE-INDENT PART/ALL OF CODE FROM HERE TO CORRESPONDING COMMENT!!!!!
 if not doAllSys: doOneBand = True # Don't change this!
@@ -90,12 +96,19 @@ if 'algos' in region or 'SR' in region or isCategorized:
 	algolist = ['DeepAK8']#,'BEST','DeepAK8DC']
 taglist = ['all']
 if isCategorized == True: 
-	taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notV','notVtH','notVtZ','notVbW']
-	if 'BB' in pfix: 
-		taglist=['taggedtWtW','taggedbZtW','taggedbHtW','notVbH','notVbZ','notVtW','notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
-	else: 
-		taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW','notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
-	if 'CR' in region: taglist=['dnnLargeT','dnnLargeH','dnnLargeZ','dnnLargeW','dnnLargeBJwjet','dnnLargeBJttbar']
+	if 'CR' in region: 
+                #taglist=['dnnLargeT','dnnLargeH','dnnLargeZ','dnnLargeW','dnnLargeB','dnnLargeJttbar','dnnLargeJwjet'] # HTNtag
+                taglist=['dnnLargeTHZWB','dnnLargeJttbar','dnnLargeJwjet'] # HTdnnL
+	elif 'BB' in pfix: taglist=['taggedtWtW','taggedbZtW','taggedbHtW','notVbH','notVbZ','notVtW',
+					'notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
+	elif 'TT' in pfix: taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW',
+					'notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
+	#isEMlist = ['L']
+	#taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtZ','notVbW','notVtH',
+	#	 'notV3W0Z0H0T',
+	#	 'notV2W0Z0H0T','notV2pW0Z0H1pT','notV2pW0Z1pH0pT','notV2pW1pZ0pH0pT',
+	#	 'notV1W0Z0H0T','notV1W0Z1H0T','notV1W0Z0H1pT','notV1W0Z1H1pT','notV1W0Z2pH0pT','notV1W1Z0H0pT','notV1W1Z1pH0pT','notV1W2pZ0pH0pT',
+	#	 'notV0W0Z0H0T','notV0W0Z1H0T','notV0W0Z0H1pT','notV0W0Z1H1pT','notV0W0Z2pH0pT','notV0W1Z0H0pT','notV0W1Z1pH0pT','notV0W2pZ0pH0pT']
 
 print taglist, algolist
 
@@ -106,10 +119,10 @@ if isCategorized and iPlot != 'YLD':
 		tagList.append(tag)
 else: tagList = list(itertools.product(taglist,algolist))
 
-lumiSys = 0.023 # lumi uncertainty
+lumiSys = 0.025 # lumi uncertainty
 trigSys = 0.0 # trigger uncertainty, now really reco uncertainty
 lepIdSys = 0.02 # lepton id uncertainty
-lepIsoSys = 0.02 # lepton isolation uncertainty
+lepIsoSys = 0.015 # lepton isolation uncertainty
 corrdSys = math.sqrt(lumiSys**2+trigSys**2+lepIdSys**2+lepIsoSys**2) #cheating while total e/m values are close
 
 def getNormUnc(hist,ibin,modelingUnc):
@@ -125,6 +138,9 @@ def formatUpperHist(histogram,th1hist):
 	highside = th1hist.GetBinLowEdge(th1hist.GetNbinsX()+1)
 	if iPlot=='dnnLargest': highside = th1hist.GetBinLowEdge(7)-0.1
 	histogram.GetXaxis().SetRangeUser(lowside,highside)
+# def formatUpperHist(histogram):
+# 	histogram.GetXaxis().SetLabelSize(0)
+# 	histogram.GetXaxis().SetRangeUser(histrange[0],histrange[1])
 	if blind == True:
 		histogram.GetXaxis().SetLabelSize(0.045)
 		histogram.GetXaxis().SetTitleSize(0.055)
@@ -141,10 +157,14 @@ def formatUpperHist(histogram,th1hist):
 	if 'nB0_' in histogram.GetName() and 'minMlb' in histogram.GetName(): histogram.GetXaxis().SetTitle("min[M(l,j)], j#neqb [GeV]")
 	histogram.GetYaxis().CenterTitle()
 	histogram.SetMinimum(0.00101)
-	if 'H1b' in histogram.GetName(): histogram.SetMinimum(0.000101)
-	if 'H2b' in histogram.GetName(): histogram.SetMinimum(0.0000101)
+        if iPlot=='HTNtag': 
+                if 'dnnLargeT' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 t jets")
+                elif 'dnnLargeH' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 H jets")
+                elif 'dnnLargeZ' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 Z jets")
+                elif 'dnnLargeW' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 W jets")
+                elif 'dnnLargeB' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 B jets")
 	if not yLog: 
-		if (region == 'SR' or region=='SCR') and isCategorized: histogram.SetMinimum(0.000101);
+		if region == 'SR' and isCategorized: histogram.SetMinimum(0.000101);
 		else: histogram.SetMinimum(0.25)		
 	if yLog:
 		uPad.SetLogy()
@@ -164,7 +184,12 @@ def formatLowerHist(histogram):
 	if 'YLD' in iPlot: histogram.GetXaxis().LabelsOption("u")
 	if iPlot=='ST': histogram.GetXaxis().SetRangeUser(600,5000)
 	if iPlot=='dnnLargest': histogram.GetXaxis().SetRangeUser(0,6)
-        #if iPlot=='DnnTprime': plt.xlabel('DnnT Score',x=1.0,size=14) 
+        if iPlot=='HTNtag': 
+                if 'dnnLargeT' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 t jets")
+                elif 'dnnLargeH' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 H jets")
+                elif 'dnnLargeZ' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 Z jets")
+                elif 'dnnLargeW' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 W jets")
+                elif 'dnnLargeB' in histogram.GetName(): histogram.GetXaxis().SetTitle("N DeepAK8 B jets")
 
 	histogram.GetYaxis().SetLabelSize(0.15)
 	histogram.GetYaxis().SetTitleSize(0.145)
@@ -218,6 +243,9 @@ for tag in tagList:
 		hsig2 = RFile2.Get(histPrefix+'__sig').Clone(histPrefix+'__sig2')
 		hsig1.Scale(xsec[sig1])
 		hsig2.Scale(xsec[sig2])
+                if len(isRebinned) > 0: 
+                        hsig1.Scale(10.0) # 100fb input -> 1pb
+                        hsig2.Scale(10.0)
 		if doNormByBinWidth:
 			poissonNormByBinWidth(gaeData,hData,perNGeV)
 			for proc in bkgProcList:
@@ -385,7 +413,6 @@ for tag in tagList:
 		if doNormByBinWidth:
 			if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): gaeData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
 			else: gaeData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
-			
 		else: gaeData.GetYaxis().SetTitle("Events / bin")
 		formatUpperHist(gaeData,hData)
 		uPad.cd()
@@ -397,16 +424,17 @@ for tag in tagList:
 		if blind: 
 			hsig1.SetMinimum(0.015)
 			if doNormByBinWidth:
-				if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): hsig1.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
-				else: hsig1.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
+                                if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): 
+                                        hsig1.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+                                else: hsig1.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
 			else: hsig1.GetYaxis().SetTitle("Events / bin")
 			hsig1.SetMaximum(1.5*hData.GetMaximum())
 			if iPlot=='Tau21Nm1': hsig1.SetMaximum(1.5*hData.GetMaximum())
 			formatUpperHist(hsig1,hsig1)
 			hsig1.Draw("HIST")
 		if doNormByBinWidth:
-			if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): hData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
-			else: hData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
+			if iPlot == 'DnnTprime': hData.GetYaxis().SetTitle("< Events / 0.01 >")
+			else: hData.GetYaxis().SetTitle("< Events / 1 GeV >")
 		else: hData.GetYaxis().SetTitle("Events / bin")
 		
 		stackbkgHT.Draw("SAME HIST")
@@ -531,7 +559,7 @@ for tag in tagList:
 
 		if blind == False and not doRealPull:
 			lPad.cd()
-			pull=hData.Clone("pull")
+			pull=hData.Clone(hData.GetName()+"pull")
 			pull.Divide(hData, bkgHT)
 			for binNo in range(0,hData.GetNbinsX()+2):
 				if bkgHT.GetBinContent(binNo)!=0:
@@ -606,7 +634,7 @@ for tag in tagList:
 		if blind == False and doRealPull:
 			formatUpperHist(hData,hData)
 			lPad.cd()
-			pull=hData.Clone("pull")
+			pull=hData.Clone(hData.GetName()+"pull")
 			for binNo in range(1,hData.GetNbinsX()+1):
 				# case for data < MC:
 				dataerror = gaeData.GetErrorYhigh(binNo-1)
@@ -673,6 +701,9 @@ for tag in tagList:
 	hsig2merged.Add(RFile2.Get(histPrefixM+'__sig').Clone())
 	hsig1merged.Scale(xsec[sig1])
 	hsig2merged.Scale(xsec[sig2])
+        if len(isRebinned) > 0: 
+                hsig1merged.Scale(10.0) # 100fb input -> typical 1pb
+                hsig2merged.Scale(10.0)                
         histrange = [hDatamerged.GetBinLowEdge(1),hDatamerged.GetBinLowEdge(hDatamerged.GetNbinsX()+1)]
 	gaeDatamerged = TGraphAsymmErrors(hDatamerged.Clone(hDatamerged.GetName().replace("DATA","gaeDATA")))
 	if doNormByBinWidth:
@@ -817,8 +848,9 @@ for tag in tagList:
 	if iPlot=='PrunedHNm1': gaeDatamerged.SetMaximum(1.7*max(gaeDatamerged.GetMaximum(),bkgHTmerged.GetMaximum()))
 	gaeDatamerged.SetMinimum(0.015)
 	if doNormByBinWidth:
-		if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): gaeDatamerged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
-		else: gaeDatamerged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
+                if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): 
+                        gaeDatamerged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+                else: gaeDatamerged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
 	else: gaeDatamerged.GetYaxis().SetTitle("Events / bin")
 	formatUpperHist(gaeDatamerged,hData)
 	uPad.cd()
@@ -831,8 +863,9 @@ for tag in tagList:
 	if blind: 
 		hsig1merged.SetMinimum(0.015)
 		if doNormByBinWidth:
-			if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): hsig1merged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
-			else: hsig1merged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
+                        if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): 
+                                hsig1merged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+                        else: hsig1merged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
 		else: hsig1merged.GetYaxis().SetTitle("Events / bin")
 		hsig1merged.SetMaximum(1.5*hDatamerged.GetMaximum())
 		if iPlot=='Tau21Nm1': hsig1merged.SetMaximum(1.5*hDatamerged.GetMaximum())
@@ -955,11 +988,18 @@ for tag in tagList:
 	
 	if blind == False and not doRealPull:
 		lPad.cd()
-		pullmerged=hDatamerged.Clone("pullmerged")
-		pullmerged.Divide(hDatamerged, bkgHTmerged)
-		for binNo in range(0,hDatamerged.GetNbinsX()+2):
-			if bkgHTmerged.GetBinContent(binNo)!=0:
-				pull.SetBinError(binNo,hDatamerged.GetBinError(binNo)/bkgHTmerged.GetBinContent(binNo))
+		pullmerged=bkgHTmerged.Clone(hDatamerged.GetName()+"pullmerged")
+                #scale = str(hDatamerged.Integral()/bkgHTmerged.Integral())
+                #print 'SCALING TOTAL BACKGOUND FOR RATIO: data =',hDatamerged.Integral(),', mc =',bkgHTmerged.Integral()
+                #pullmerged.Scale(hDatamerged.Integral()/bkgHTmerged.Integral())
+		pullmerged.Divide(hDatamerged, pullmerged)                
+                if 'probj' in iPlot:
+                        print 'probjratio = {'
+                        for binNo in range(0,hDatamerged.GetNbinsX()+2):
+                                print str(pullmerged.GetBinContent(binNo))+','
+                                if bkgHTmerged.GetBinContent(binNo)!=0:
+                                        pullmerged.SetBinError(binNo,hDatamerged.GetBinError(binNo)/bkgHTmerged.GetBinContent(binNo))
+                        print '};'
 		pullmerged.SetMaximum(3)
 		pullmerged.SetMinimum(0)
 		pullmerged.SetFillColor(1)
@@ -1017,6 +1057,8 @@ for tag in tagList:
 		pullLegendmerged.SetLineStyle(0)
 		pullLegendmerged.SetBorderSize(0)
 		pullLegendmerged.SetTextFont(42)
+                #pullLegendmerged.AddEntry(pullmerged,"Data/(MC*"+scale+")","pl")
+                pullLegendmerged.AddEntry(pullmerged,"Data/MC","pl")
 		if not doOneBand: pullLegendmerged.AddEntry(pullUncBandStat , "Bkg. uncert. (shape syst.)" , "f")
 		if not doOneBand: pullLegendmerged.AddEntry(pullUncBandNorm , "Bkg. uncert. (shape #oplus norm. syst.)" , "f")
 		if not doOneBand: pullLegendmerged.AddEntry(pullUncBandTot , "Bkg. uncert. (stat. #oplus all syst.)" , "f")
@@ -1030,7 +1072,7 @@ for tag in tagList:
 	if blind == False and doRealPull:
 		formatUpperHist(hDatamerged,hDatamerged)
 		lPad.cd()
-		pullmerged=hDatamerged.Clone("pullmerged")
+		pullmerged=hDatamerged.Clone(hDatamerged.GetName()+"pullmerged")
 		for binNo in range(1,hDatamerged.GetNbinsX()+1):
 			# case for data < MC:
 			dataerror = gaeDatamerged.GetErrorYhigh(binNo-1)

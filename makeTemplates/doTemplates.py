@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import os,sys,time,math,datetime,pickle,itertools,fnmatch
-from ROOT import gROOT,TFile,TH1F
+from ROOT import gROOT,TFile,TH1F, TH2D
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
 from weights import *
@@ -13,14 +13,15 @@ start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
 
-region='PS' #PS,SR,TTCR,WJCR,CR
+region='TR' #PS,SR,TTCR,WJCR,CR
 isCategorized=False
 pfix='templates'+region
 if not isCategorized: pfix='kinematics'+region
-pfix+='_Mar2020BB'#_July2019_With_Uncertainties
+pfix+='_Nov2020TT_HTdnnJ3corrsSF2D'#_July2019_With_Uncertainties
 outDir = os.getcwd()+'/'+pfix+'/'
 
-doCombineTemplates = False
+doCombineTemplates = False #run once with true if SR is catagorized
+if isCategorized: doCombineTemplates=True
 removeThreshold = 0.015
 zero = 1e-12
 
@@ -29,9 +30,15 @@ scaleLumi = False
 lumiScaleCoeff = 41530./56690.
 doAllSys = True
 addCRsys = False
-doPDF = True
-systematicList = ['muRFcorrd','trigeffEl','trigeffMu','pileup','jec','btag','jsf','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag']#,'toppt']
-if isCategorized: systematicList = ['muRFcorrd','muR','muF','trigeffEl','trigeffMu','pileup','jec','btag','jsf','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag']
+doPDF = False
+if isCategorized: doPDF=True
+systematicList = ['muRFcorrd','trigeffEl','trigeffMu','pileup','jec','btag','jsf','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag','toppt','dnnJ']
+if '2D' in outDir: 
+        systematicList.remove('btag')
+        systematicList.remove('ltag')
+if isCategorized: 
+        systematicList.append('muR')
+        systematicList.append('muF')
 normalizeRENORM_PDF = False #normalize the renormalization/pdf uncertainties to nominal templates --> normalizes signal processes only !!!!
 		       
 bkgGrupList = ['top','ewk','qcd']
@@ -47,17 +54,21 @@ bkgProcs['T']      = ['Tt','Tbt','Ts','TtW','TbtW']
 bkgProcs['qcd'] = ['QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000']#'QCDht200',300 removed due to low # of events
 bkgProcs['top'] = bkgProcs['TTJets']+bkgProcs['T']+bkgProcs['TTV']
 bkgProcs['ewk'] = bkgProcs['WJets']+bkgProcs['ZJets']+bkgProcs['VV'] 
+
+if isCategorized and region == 'SR':
+	bkgProcs['qcd'].remove('QCDht500')
+	bkgProcs['qcd'].remove('QCDht700')
+	bkgProcs['qcd'].remove('QCDht1000')
+
 dataList = [
 	'DataEABCD',
 	'DataMABCD'
-	#'Data18EG',
-	#'Data18MU',
 	]
 
 topptProcs = ['top','TTJets']
 
 whichSignal = 'TT' #HTB, TT, BB, or X53X53
-massList = [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
+massList = [900,1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
 #print 'I made it here!'
@@ -70,20 +81,19 @@ elif isCategorized and 'CR' in region: doBRScan = True
 
 BRs={}
 if whichSignal=='TT':
-	BRs['BW']=[0.50]#,0.0,1.0,0.0,0.0]#,0.0,0.0,0.0,0.0,0.0,0.2,0.2,0.2,0.2,0.2,0.4,0.4,0.4,0.4,0.6,0.6,0.6,0.8,0.8,1.0]
-	BRs['TH']=[0.25]#,0.5,0.0,1.0,0.0]#,0.2,0.4,0.6,0.8,1.0,0.0,0.2,0.4,0.6,0.8,0.0,0.2,0.4,0.6,0.0,0.2,0.4,0.0,0.2,0.0]
-	BRs['TZ']=[0.25]#,0.5,0.0,0.0,1.0]#,0.8,0.6,0.4,0.2,0.0,0.8,0.6,0.4,0.2,0.0,0.6,0.4,0.2,0.0,0.4,0.2,0.0,0.2,0.0,0.0]
+	BRs['BW']=[0.50,0.0,1.0,0.0,0.0]#,0.0,0.0,0.0,0.0,0.0,0.2,0.2,0.2,0.2,0.2,0.4,0.4,0.4,0.4,0.6,0.6,0.6,0.8,0.8,1.0]
+	BRs['TH']=[0.25,0.5,0.0,1.0,0.0]#,0.2,0.4,0.6,0.8,1.0,0.0,0.2,0.4,0.6,0.8,0.0,0.2,0.4,0.6,0.0,0.2,0.4,0.0,0.2,0.0]
+	BRs['TZ']=[0.25,0.5,0.0,0.0,1.0]#,0.8,0.6,0.4,0.2,0.0,0.8,0.6,0.4,0.2,0.0,0.6,0.4,0.2,0.0,0.4,0.2,0.0,0.2,0.0,0.0]
 	nBRconf=len(BRs['BW'])
 elif whichSignal=='BB':
-	BRs['TW']=[0.0,0.50,1.0,0.0,0.0]#,0.0,0.0,0.0,0.0,0.0,0.2,0.2,0.2,0.2,0.2,0.4,0.4,0.4,0.4,0.6,0.6,0.6,0.8,0.8,1.0]
-        BRs['BH']=[0.5,0.25,0.0,1.0,0.0]#,0.2,0.4,0.6,0.8,1.0,0.0,0.2,0.4,0.6,0.8,0.0,0.2,0.4,0.6,0.0,0.2,0.4,0.0,0.2,0.0]
-        BRs['BZ']=[0.5,0.25,0.0,0.0,1.0]#,0.8,0.6,0.4,0.2,0.0,0.8,0.6,0.4,0.2,0.0,0.6,0.4,0.2,0.0,0.4,0.2,0.0,0.2,0.0,0.0]
+	BRs['TW']=[0.50,0.0,1.0,0.0,0.0]#,0.0,0.0,0.0,0.0,0.0,0.2,0.2,0.2,0.2,0.2,0.4,0.4,0.4,0.4,0.6,0.6,0.6,0.8,0.8,1.0]
+        BRs['BH']=[0.25,0.5,0.0,1.0,0.0]#,0.2,0.4,0.6,0.8,1.0,0.0,0.2,0.4,0.6,0.8,0.0,0.2,0.4,0.6,0.0,0.2,0.4,0.0,0.2,0.0]
+        BRs['BZ']=[0.25,0.5,0.0,0.0,1.0]#,0.8,0.6,0.4,0.2,0.0,0.8,0.6,0.4,0.2,0.0,0.6,0.4,0.2,0.0,0.4,0.2,0.0,0.2,0.0,0.0]
         nBRconf=len(BRs['TW'])
 if not doBRScan: nBRconf=1
 
 isEMlist = ['E','M']
-#isEMlist =['E','M','L']
-#isEMlist =['L']
+if '2D' in outDir: isEMlist =['L']
 algolist = ['all']
 if isCategorized or 'algos' in region or 'SR' in region: algolist = ['DeepAK8']#,'BEST'],'DeepAK8DC']
 taglist = ['all']
@@ -94,7 +104,9 @@ if isCategorized:
 		if whichSignal=='BB':
 			taglist=['taggedtWtW','taggedbZtW','taggedbHtW','notVbH','notVbZ','notVtW','notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
 
-        elif 'CR' in region: taglist=['dnnLargeT','dnnLargeH','dnnLargeW','dnnLargeZ','dnnLargeB','dnnLargeJwjet','dnnLargeJttbar']
+        elif 'CR' in region: 
+                #taglist=['dnnLargeT','dnnLargeH','dnnLargeW','dnnLargeZ','dnnLargeB','dnnLargeJwjet','dnnLargeJttbar'] # HTNtag
+                taglist=['dnnLargeTHZWB','dnnLargeJwjet','dnnLargeJttbar'] # HTdnnL
         else: taglist = ['all']
 
 	
@@ -102,13 +114,13 @@ if isCategorized:
 catList = ['is'+item[0]+'_'+item[1]+'_'+item[2] for item in list(itertools.product(isEMlist,taglist,algolist))]
 #tagList = [item[0] for item in list(itertools.product(taglist))]
 
-lumiSys = 0.023 #lumi uncertainty
+lumiSys = 0.025 #lumi uncertainty
 eltrigSys = 0.0 #electron trigger uncertainty
 mutrigSys = 0.0 #muon trigger uncertainty
 elIdSys = 0.02 #electron id uncertainty
 muIdSys = 0.02 #muon id uncertainty
-elIsoSys = 0.01 #electron isolation uncertainty
-muIsoSys = 0.01 #muon isolation uncertainty
+elIsoSys = 0.015 #electron isolation uncertainty
+muIsoSys = 0.015 #muon isolation uncertainty
 
 elcorrdSys = math.sqrt(lumiSys**2+eltrigSys**2+elIdSys**2+elIsoSys**2)
 mucorrdSys = math.sqrt(lumiSys**2+mutrigSys**2+muIdSys**2+muIsoSys**2)
@@ -148,14 +160,14 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 			#Group data processes
 			hists['data'+i] = datahists[histoPrefix+'_'+dataList[0]].Clone(histoPrefix+'__DATA')
 			for dat in dataList:
-			      	print 'dataList member',dat,'with integral',datahists[histoPrefix+'_'+dat].Integral()
+			      	#print 'dataList member',dat,'with integral',datahists[histoPrefix+'_'+dat].Integral()
 				if dat!=dataList[0]: hists['data'+i].Add(datahists[histoPrefix+'_'+dat])
 			
 			#Group processes
 			for proc in bkgProcList+bkgGrupList:
 				hists[proc+i] = bkghists[histoPrefix+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc)
 				for bkg in bkgProcs[proc]:
-					print 'bkgList member',histoPrefix+'_'+bkg,'with integral',bkghists[histoPrefix+'_'+bkg].Integral()
+					#print 'bkgList member',histoPrefix+'_'+bkg,'with integral',bkghists[histoPrefix+'_'+bkg].Integral()
 					if bkg!=bkgProcs[proc][0]: hists[proc+i].Add(bkghists[histoPrefix+'_'+bkg])
 
 			#get signal
@@ -515,7 +527,7 @@ for iPlot in iPlotList:
 	checkprint = False
         #print bkghists
         #print datahists
-	#print sighists
+#	print sighists
 	#print 'sighists check:'
 	for key in sighists:
 		if 'MET_' in key and 'TTM800' in key: print key
@@ -524,8 +536,8 @@ for iPlot in iPlotList:
 		iPlot=iPlot.replace('Tp','Bp')
         	iPlot=iPlot.replace('DnnTTbar','DnnTTbarBB')
         	iPlot=iPlot.replace('DnnWJets','DnnWJetsBB') 
-	#try:
-	makeThetaCats(datahists,sighists,bkghists,iPlot)
+        #try:
+        makeThetaCats(datahists,sighists,bkghists,iPlot)
 	#except:
 	#	print 'makeThetaCats failed for iPlot:',iPlot
 	#	pass
