@@ -90,9 +90,13 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
                 topCorr = 'HT_Corr'#'min(1.0,tpt_Corr)'#'topPtWeight13TeV'#
                 topCorrUp = 'HT_CorrUp'#'min(1.0,tpt_CorrUp)'#'1'#
                 topCorrDn = 'HT_CorrDn'#'min(1.0,tpt_CorrDn)'#'topPtWeight13TeV'#
-        dnnJCorr = 'dnnJweight3*'+str(dnnJ3SF[process]) # '1' #'dnnJweight*'+str(dnnJ2SF[process]) # 
-        dnnJCorrDn = '1' # '1' # '1' #
-        dnnJCorrUp = 'dnnJweight3*'+str(dnnJ3SF[process]) # '1' #'dnnJweight*'+str(dnnJ2SF[process]) # 
+        dnnJCorr = '1'
+        dnnJCorrDn = '1'
+        dnnJCorrUp = '1'
+        if 'PS' not in region:
+                dnnJCorr = 'dnnJweight3*'+str(dnnJ3SF[process]) # '1' #'dnnJweight*'+str(dnnJ2SF[process]) # 
+                dnnJCorrDn = '1' # '1' # '1' #
+                dnnJCorrUp = 'dnnJweight3*'+str(dnnJ3SF[process]) # '1' #'dnnJweight*'+str(dnnJ2SF[process]) # 
 
 	weightStr = '1'
 	if 'Data' not in process: 
