@@ -55,10 +55,10 @@ bkgProcs['qcd'] = ['QCDht500','QCDht700','QCDht1000','QCDht1500','QCDht2000']#'Q
 bkgProcs['top'] = bkgProcs['TTJets']+bkgProcs['T']+bkgProcs['TTV']
 bkgProcs['ewk'] = bkgProcs['WJets']+bkgProcs['ZJets']+bkgProcs['VV'] 
 
-if isCategorized and region == 'SR':
-	bkgProcs['qcd'].remove('QCDht500')
-	bkgProcs['qcd'].remove('QCDht700')
-	bkgProcs['qcd'].remove('QCDht1000')
+# if isCategorized and region == 'SR':
+# 	bkgProcs['qcd'].remove('QCDht500')
+# 	bkgProcs['qcd'].remove('QCDht700')
+# 	bkgProcs['qcd'].remove('QCDht1000')
 
 dataList = [
 	'DataEABCD',
@@ -68,7 +68,7 @@ dataList = [
 topptProcs = ['top','TTJets']
 
 whichSignal = 'TT' #HTB, TT, BB, or X53X53
-massList = [900,1000,1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800]
+massList = range(900,1800+1,100)
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
 #print 'I made it here!'
@@ -203,6 +203,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 							hists[proc+i+'pdf'+str(pdfInd)] = bkghists[histoPrefix.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc+'__pdf'+str(pdfInd))
 							for bkg in bkgProcs[proc]:
 								if bkg!=bkgProcs[proc][0]: hists[proc+i+'pdf'+str(pdfInd)].Add(bkghists[histoPrefix.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+bkg])
+                                        for pdfInd in range(30):
 						for signal in sigList:
 							hists[signal+i+'pdf'+str(pdfInd)] = sighists[histoPrefix.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+signal+decays[0]].Clone(histoPrefix+'__sig__pdf'+str(pdfInd))
 							if doBRScan: hists[signal+i+'pdf'+str(pdfInd)].Scale(BRs[decays[0][:2]][BRind]*BRs[decays[0][2:]][BRind]/(BR[decays[0][:2]]*BR[decays[0][2:]]))
@@ -253,7 +254,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 									print "Couldn't normalize MU for",signal,i
 									pass
 						if doPDF:
-							for pdfInd in range(100): 
+							for pdfInd in range(30): 
 								hists[signal+i+'pdf'+str(pdfInd)].Scale(1./xsec[signal])
 
 		#Theta templates:
@@ -282,7 +283,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 							hists[proc+i+syst+'Up'].Write()
 							hists[proc+i+syst+'Down'].Write()
 						if doPDF:
-							for pdfInd in range(100): hists[proc+i+'pdf'+str(pdfInd)].Write()
+							for pdfInd in range(30): hists[proc+i+'pdf'+str(pdfInd)].Write()
 				hists['data'+i].Write()
 			thetaRfile.Close()
 
@@ -307,7 +308,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 							hists[signal+i+syst+'Up'].Write()
 							hists[signal+i+syst+'Down'].Write()
 						if doPDF:
-							for pdfInd in range(100): 
+							for pdfInd in range(30): 
 								hists[signal+i+'pdf'+str(pdfInd)].SetName(hists[signal+i+'pdf'+str(pdfInd)].GetName().replace('fb_','fb_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass))
 								hists[signal+i+'pdf'+str(pdfInd)].Write()
 
