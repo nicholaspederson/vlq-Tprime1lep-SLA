@@ -55,7 +55,7 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
                 cut += ' && (NJetsAK8_JetSubCalc > 2 && isValid'+whichSig+'DecayMode_DeepAK8 == 0)' #for signal and TTbar(+X) and ST
 	elif 'CR' in region: # 'CR' or 'CRinc'  certain AK8 jets and low signal node
 		#cut += ' && (NJetsAK8_JetSubCalc >= '+str(cutList['nAK8Cut'])+') && (dnnNew_Tprime < '+str(cutList['dnnCut'])+')'
-		cut += ' && (NJetsAK8_JetSubCalc >= '+str(cutList['nAK8Cut'])+') && (dnnNew_Tprime < dnnNew_WJets'+BBstr+' && dnnNew_Tprime < dnnNew_ttbar'+BBstr+')'
+		cut += ' && (NJetsAK8_JetSubCalc >= '+str(cutList['nAK8Cut'])+') && (dnnNew_Tprime < dnnNew_WJets'+BBstr+' || dnnNew_Tprime < dnnNew_ttbar'+BBstr+')'
 		if 'TT' in region: cut += ' && (dnnNew_ttbar'+BBstr+' > dnnNew_WJets'+BBstr+')'
 		if 'WJ' in region: cut += ' && (dnnNew_ttbar'+BBstr+' <= dnnNew_WJets'+BBstr+')'                
 	elif 'SR' in region: # 'SR'  certain AK8 jets, mass reco, high signal node
@@ -94,9 +94,9 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
         dnnJCorrDn = '1'
         dnnJCorrUp = '1'
         if 'PS' not in region:
-                dnnJCorr = 'dnnJweight3*'+str(dnnJ3SF[process]) # '1' #'dnnJweight*'+str(dnnJ2SF[process]) # 
+                dnnJCorr = 'dnnJweight3'#*'+str(dnnJ3SF[process]) # '1' #'dnnJweight*'+str(dnnJ2SF[process]) # 
                 dnnJCorrDn = '1' # '1' # '1' #
-                dnnJCorrUp = 'dnnJweight3*'+str(dnnJ3SF[process]) # '1' #'dnnJweight*'+str(dnnJ2SF[process]) # 
+                dnnJCorrUp = 'dnnJweight3'#*'+str(dnnJ3SF[process]) # '1' #'dnnJweight*'+str(dnnJ2SF[process]) # 
 
 	weightStr = '1'
 	if 'Data' not in process: 
@@ -179,12 +179,7 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 	if isCategorized and ((iPlot == 'Tp2MDnn' and 'notV' in tag) or iPlot == 'DnnTprime'):
 		plotTreeName = 'dnnNew_Tprime'
 		xAxisLabel = ';DNN T score'
-		if region == 'SCR':
-			xbins = array('d', linspace(0,1,101).tolist())
-		if region == 'CR':
-			xbins = array('d', linspace(0,float(cutList['dnnCut']),101).tolist())
-		else:
-			xbins = array('d', linspace(float(cutList['dnnCut']),1,101).tolist())
+                xbins = array('d', linspace(0,1,101).tolist())
 
 	if iPlot == 'Tp2MST':
 		if 'notV' in tag: 
