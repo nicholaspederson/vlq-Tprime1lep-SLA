@@ -17,9 +17,6 @@ gROOT.SetBatch(1)
 
 BRconfStr=str(sys.argv[1])
 
-tag = 'June2020' ##Tag and saveKey are used for output directory names
-saveKey = tag+str(sys.argv[3])
-
 whichsignal = 'TT'
 if 'tW' in BRconfStr: whichsignal = 'BB'
 year = '2018'
@@ -27,11 +24,15 @@ year = '2018'
 fileDir = '/uscms_data/d3/jmanagan/CMSSW_10_2_10/src/tptp_2018/makeTemplates/'
 template = 'templates'+sys.argv[2]+'_' ##Change template to template directory. e.g.: templatesSR_......
 
-print'Tag = ',tag,', BR string = ',BRconfStr
+tag = 'Feb2021' ##Tag and saveKey are used for output directory names
+saveKey = tag+'_'+str(sys.argv[3])
+CRdiscrim = sys.argv[4]
+
+print'Tag = ',tag,', BR string = ',BRconfStr, ', whichsignal = ',whichsignal
 
 def add_processes_and_observations(cb, prefix=whichsignal):
         print '------------------------------------------------------------------------'
-	print '>> Creating processes and observations...'
+	print '>> Creating processes and observations...prefix:',prefix
 	for chn in chns:
                 print '>>>> \t Creating proc/obs for channel:',chn
 		cats_chn = cats[chn]
@@ -42,15 +43,17 @@ def add_processes_and_observations(cb, prefix=whichsignal):
 
 def add_shapes(cb, prefix=whichsignal):
         print '------------------------------------------------------------------------'
-	print '>> Extracting histograms from input root files...'
+	print '>> Extracting histograms from input root files...prefix:',prefix
 	for chn in chns:
                 print '>>>> \t Extracting histos for channel:',chn
-		CRbkg_pattern = 'HTNtag_'+lumiStr+'_%s$BIN__$PROCESS' % chn
+		CRbkg_pattern = CRdiscrim+'_'+lumiStr+'_%s$BIN__$PROCESS' % chn
 		SRbkg_pattern = 'DnnTprime_'+lumiStr+'_%s$BIN__$PROCESS' % chn
-		CRsig_pattern = 'HTNtag_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
+		CRsig_pattern = CRdiscrim+'_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
 		SRsig_pattern = 'DnnTprime_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
-		if prefix=='BB': SRbkg_pattern = SRbkg_pattern.replace('Tprime','Bprime')
-		if prefix=='BB': SRsig_pattern = SRsig_pattern.replace('TTM','BBM').replace('Tprime','Bprime')
+		if prefix=='BB': 
+                        SRbkg_pattern = SRbkg_pattern.replace('Tprime','Bprime')
+                        SRsig_pattern = SRsig_pattern.replace('TTM','BBM').replace('Tprime','Bprime')
+                        print 'Changing names!',SRbkg_pattern,SRsig_pattern
 
 		if 'isCR' in chn: 
 			cb.cp().channel([chn]).era([era]).backgrounds().ExtractShapes(rfile, CRbkg_pattern, CRbkg_pattern + '__$SYSTEMATIC')
@@ -104,8 +107,16 @@ def add_systematics(cb):
 	
 	signal = cb.cp().signals().process_set()
 	
-        ## Uncorrelated; Ex: B2G-19-001/AN2018_322_v7
-        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'lumi$ERA', 'lnN', ch.SystMap('era')(['2016'], 1.025)(['2017'], 1.023)(['2018'], 1.025)) 
+        ## https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#CurRec
+        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'lumi$ERA', 'lnN', ch.SystMap('era')(['2016'], 1.022)(['2017'], 1.020)(['2018'], 1.015)) 
+        cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'lumiXY', 'lnN', ch.SystMap('era')(['2016'], 1.009)(['2017'], 1.008)(['2018'], 1.020)) 
+        if era != '2018':
+                cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'lumiBBD', 'lnN', ch.SystMap('era')(['2016'], 1.004)(['2017'], 1.004)) 
+                cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'lumiDB', 'lnN', ch.SystMap('era')(['2016'], 1.005)(['2017'], 1.005)) 
+                cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'lumiGS', 'lnN', ch.SystMap('era')(['2016'], 1.004)(['2017'], 1.001)) 
+        if era != '2016':
+                cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'lumiLS', 'lnN', ch.SystMap('era')(['2017'], 1.003)(['2018'], 1.002)) 
+                cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'lumiBCC', 'lnN', ch.SystMap('era')(['2017'], 1.003)(['2018'], 1.002)) 
 
         ## Taking lepton SFs as uncorrelated, new calculations each year
 	cb.cp().process(signal + allbkgs).channel(chnsE).AddSyst(cb, 'elIdSys$ERA', 'lnN', ch.SystMap()(1.027)) 
@@ -149,6 +160,13 @@ def add_systematics(cb):
 
         ## HT weighting only on EWK background, same in all years
         cb.cp().process([allbkgs[1]]).channel(chns).AddSyst(cb, 'jsf', 'shape', ch.SystMap()(1.0))
+
+        ## HTCorr on top background only, same in all years
+        cb.cp().process([allbkgs[0]]).channel(chns).AddSyst(cb, 'toppt', 'shape', ch.SystMap()(1.0))
+
+        ## DeepAK8 J-score shape correction, independent in 2017 and 2018
+        if era != '2016':
+                cb.cp().process(signal + allbkgs).channel(chns).AddSyst(cb, 'Jshape$ERA', 'shape', ch.SystMap()(1.0)) 
 
 	## Taking as correlated across years, but not processes -- no changes to this setting in MC
 	cb.cp().process([allbkgs[0]]).channel(chns).AddSyst(cb, 'muRFcorrdNewTop', 'shape', ch.SystMap()(1.0))
@@ -212,11 +230,10 @@ if __name__ == '__main__':
         discrim = 'DnnTprime'
         if whichsignal == 'BB': discrim = 'DnnBprime'
 	if 'SRCR' in template:
-		#rfile = fileDir+template+tag+whichsignal+'/templates_'+discrim+'_'+BRconfStr+'_'+lumiStrDir+'_Combine_rebinned_stat0p15.root'
 		rfile = fileDir+template+tag+whichsignal+'/templates_'+discrim+'_'+BRconfStr+'_'+lumiStrDir+'_Combine_rebinned_stat0p3_smoothedLOWESS.root'
 		os.system('cp '+rfile+' ./limits_'+template+saveKey+'/'+BRconfStr+'/')
         elif 'CR' in template:
-		rfile = fileDir+template+tag+whichsignal+'/templates_HTNtag_'+BRconfStr+'_'+lumiStrDir+'_Combine_chi2_rebinned_stat0p15.root'
+		rfile = fileDir+template+tag+whichsignal+'/templates_'+CRdiscrim+'_'+BRconfStr+'_'+lumiStrDir+'_Combine_chi2_rebinned_stat0p3.root'
 		os.system('cp '+rfile+' ./limits_'+template+saveKey+'/'+BRconfStr+'/')
 
 	print'File: ',rfile
