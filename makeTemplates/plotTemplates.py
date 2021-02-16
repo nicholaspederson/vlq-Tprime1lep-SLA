@@ -258,8 +258,8 @@ for tag in tagList:
 		hsig1.Scale(xsec[sig1])
 		hsig2.Scale(xsec[sig2])
                 if len(isRebinned) > 0: 
-                        hsig1.Scale(xsec[sig1]*10) # 100fb input -> 1pb
-                        hsig2.Scale(xsec[sig2]*10)
+                        hsig1.Scale(10) # 100fb input -> 1pb
+                        hsig2.Scale(10)
 		if doNormByBinWidth:
 			poissonNormByBinWidth(gaeData,hData,perNGeV)
 			for proc in bkgProcList:
@@ -727,8 +727,8 @@ for tag in tagList:
 	hsig1merged.Scale(xsec[sig1])
 	hsig2merged.Scale(xsec[sig2])
         if len(isRebinned) > 0: 
-                hsig1merged.Scale(xsec[sig1]*10) # 100fb input -> typical 1pb
-                hsig2merged.Scale(xsec[sig2]*10)                
+                hsig1merged.Scale(10) # 100fb input -> typical 1pb
+                hsig2merged.Scale(10)                
         histrange = [hDatamerged.GetBinLowEdge(1),hDatamerged.GetBinLowEdge(hDatamerged.GetNbinsX()+1)]
 	gaeDatamerged = TGraphAsymmErrors(hDatamerged.Clone(hDatamerged.GetName().replace(datalabel,"gaeDATA")))
 	if doNormByBinWidth:
