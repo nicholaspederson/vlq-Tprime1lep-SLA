@@ -108,7 +108,7 @@ def PlotLimits(limitDir,limitFile,tempKey):
     limObserved = 900
     for i in range(len(mass)):
         key = str(mass[i])
-        if '900' in key and '900.0' not in mass.keys(): continue
+        if '900' in key and '900.0' not in data.keys(): continue
         lims = {}
 
         if blind:
@@ -188,7 +188,7 @@ def PlotLimits(limitDir,limitFile,tempKey):
 
     expected95.Draw("a3")
     if signal == 'T': expected95.GetYaxis().SetRangeUser(.0005+.00001,2.01)
-    else: expected95.GetYaxis().SetRangeUser(.002+.00001,80.1)
+    else: expected95.GetYaxis().SetRangeUser(.0005+.00001,2.01)
     expected95.GetXaxis().SetRangeUser(900,1800)
     if tempKey=='nB0': expected95.GetYaxis().SetRangeUser(.008+.00001,25.45)   
     expected95.GetXaxis().SetTitle(signal+" mass [GeV]")
@@ -283,7 +283,7 @@ def PlotLimits(limitDir,limitFile,tempKey):
     
     c4.RedrawAxis()
     
-    folder = '/uscms_data/d3/jmanagan/CMSSW_10_2_10/src/tptp_2018/combineLimits/'
+    folder = os.getcwd() #'/uscms_data/d3/jmanagan/CMSSW_10_2_10/src/tptp_2018/combineLimits/'
     outDir=folder+limitDir+'/'
     #outDir = folder
     if not os.path.exists(outDir): os.system('mkdir -p '+outDir)
