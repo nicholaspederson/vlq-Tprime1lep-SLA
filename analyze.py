@@ -74,6 +74,9 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
         TrigEffMuUp='(triggSF+isMuon*triggSFUncert)'
         TrigEffMuDn='(triggSF-isMuon*triggSFUncert)'
 	TrigEff = 'triggSF'
+        lepIdSF = 'lepIdSF'
+        lepIdSFUp = '(lepIdSF + elIdSFUnc)' # add-on is 0 for muons
+        lepIdSFDn = '(lepIdSF - elIdSFUnc)'
 	cut += ' && DataPastTrigger == 1 && MCPastTrigger == 1'
 
 	jetSFstr='1'
@@ -101,10 +104,12 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 	weightStr = '1'
 	if 'Data' not in process: 
 		if 'TTM' in process or 'BBM' in process:
-			weightStr          += ' * '+jetSFstr+' * '+TrigEff+' * '+dnnJCorr+' * pileupWeight * lepIdSF * EGammaGsfSF * isoSF * '+str(weight[process])+' * pdfWeights4LHC[0] * MCWeight_MultiLepCalc'
+			weightStr          += ' * '+jetSFstr+' * '+TrigEff+' * '+dnnJCorr+' * pileupWeight * '+lepIdSF+' * EGammaGsfSF * isoSF * '+str(weight[process])+' * pdfWeights4LHC[0] * MCWeight_MultiLepCalc'
 		else:
-			weightStr          += ' * '+jetSFstr+' * '+topCorr+' * '+TrigEff+' * '+dnnJCorr+' * pileupWeight * lepIdSF * EGammaGsfSF * isoSF * '+str(weight[process])+' * (MCWeight_MultiLepCalc/abs(MCWeight_MultiLepCalc))'
+			weightStr          += ' * '+jetSFstr+' * '+topCorr+' * '+TrigEff+' * '+dnnJCorr+' * pileupWeight * '+lepIdSF+' * EGammaGsfSF * isoSF * '+str(weight[process])+' * (MCWeight_MultiLepCalc/abs(MCWeight_MultiLepCalc))'
 
+		weightelIdSFUpStr  = weightStr.replace(lepIdSF,lepIdSFUp)
+                weightelIdSFDownStr= weightStr.replace(lepIdSF,lepIdSFDn)
 		weightTrigEffElUpStr  = weightStr.replace(TrigEff,TrigEffElUp)
                 weightTrigEffElDownStr= weightStr.replace(TrigEff,TrigEffElDn)
 		weightTrigEffMuUpStr  = weightStr.replace(TrigEff,TrigEffMuUp)
@@ -179,7 +184,7 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 	if isCategorized and ((iPlot == 'Tp2MDnn' and 'notV' in tag) or iPlot == 'DnnTprime'):
 		plotTreeName = 'dnnNew_Tprime'
 		xAxisLabel = ';DNN T score'
-                xbins = array('d', linspace(0,1,101).tolist())
+                xbins = array('d', linspace(0,1,501).tolist())
 
 	if iPlot == 'Tp2MST':
 		if 'notV' in tag: 
@@ -351,6 +356,8 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 	hists = {}
 	hists[iPlot+'_'+lumiStr+'fb_'+catStr+'_'+process]  = TH1D(iPlot+'_'+lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
 	if doAllSys:
+		hists[iPlot+'elIdSFUp_'    +lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'elIdSFUp_'    +lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
+		hists[iPlot+'elIdSFDown_'  +lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'elIdSFDown_'  +lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
 		hists[iPlot+'trigeffElUp_'    +lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'trigeffElUp_'    +lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
 		hists[iPlot+'trigeffElDown_'  +lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'trigeffElDown_'  +lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
                 hists[iPlot+'trigeffMuUp_'    +lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'trigeffMuUp_'    +lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
@@ -418,6 +425,8 @@ def analyze(tTree,process,cutList,doAllSys,doJetRwt,iPlot,plotDetails,category,r
 	tTree[process].Draw(plotTreeName+' >> '+iPlot+''+'_'+lumiStr+'fb_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
 	print 'Nominal hist integral: ',hists[iPlot+''+'_'+lumiStr+'fb_'+catStr+'_' +process].Integral()
 	if doAllSys:
+		tTree[process].Draw(plotTreeName+' >> '+iPlot+'elIdSFUp_'    +lumiStr+'fb_'+catStr+'_'+process, weightelIdSFUpStr+'*('+fullcut+')', 'GOFF')
+		tTree[process].Draw(plotTreeName+' >> '+iPlot+'elIdSFDown_'  +lumiStr+'fb_'+catStr+'_'+process, weightelIdSFDownStr+'*('+fullcut+')', 'GOFF')
 		tTree[process].Draw(plotTreeName+' >> '+iPlot+'trigeffElUp_'    +lumiStr+'fb_'+catStr+'_'+process, weightTrigEffElUpStr+'*('+fullcut+')', 'GOFF')
 		tTree[process].Draw(plotTreeName+' >> '+iPlot+'trigeffElDown_'  +lumiStr+'fb_'+catStr+'_'+process, weightTrigEffElDownStr+'*('+fullcut+')', 'GOFF')
                 tTree[process].Draw(plotTreeName+' >> '+iPlot+'trigeffMuUp_'    +lumiStr+'fb_'+catStr+'_'+process, weightTrigEffMuUpStr+'*('+fullcut+')', 'GOFF')

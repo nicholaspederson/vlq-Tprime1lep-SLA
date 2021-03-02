@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
-targetlumi = 59690. # 1/pb
-targetlumi2017 = 41530.
+targetlumi = 59740. # https://twiki.cern.ch/twiki/bin/viewauth/CMS/PdmVAnalysisSummaryTable r23
+targetlumi2017 = 41530. 
+targetlumi2017 = 35920. 
 
 genHTweight={}
 genHTweight['WJetsMG100'] = 0.998056#https://github.com/jmhogan/GenHTweight/blob/master/WJetsToLNuSFs.txt
