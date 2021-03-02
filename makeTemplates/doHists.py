@@ -92,7 +92,7 @@ bigbins = [0,50,100,125,150,175,200,225,250,275,300,325,350,375,400,450,500,600,
 
 nbins = 51
 xmax = 800
-if isCategorized and 'SR' in region: 
+if isCategorized or 'TR' in region: 
 	nbins = 501
 	xmax = 1000
 
