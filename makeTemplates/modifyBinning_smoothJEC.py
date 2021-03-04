@@ -25,7 +25,7 @@ start_time = time.time()
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #cutString = 'splitLess/'#BB_templates/'
-templateDir = os.getcwd()+'/templatesSR_June2020TT/'
+templateDir = os.getcwd()+'/templatesSR_Mar2021_TT/'
 
 rebinCombine = True
 smoothLOWESS = True
@@ -33,7 +33,7 @@ smoothLOWESS = True
 scaleLumi = False
 #lumiScaleCoeffEl = 2530./2600.
 #lumiScaleCoeffMu = 2621./2690.
-lumiscale = 2318./2258.
+#lumiscale = 2318./2258.
 
 sigName = 'TT' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
 if 'BB' in templateDir: sigName = 'BB'
@@ -52,9 +52,9 @@ def findfiles(path, filtre):
             yield os.path.join(root, f)
 
 #Setup the selection of the files to be rebinned: HiggsTagTemplate_tW1p0_bZ0p0_bH0p0_BBM1800.root
-rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' in file and '0p3' in file and 'smoothed' not in file and skipcode in file and 'BKGNORM' not in file and 'Combine' not in file and 'plots' not in file] 
+rfiles = [file for file in findfiles(templateDir, '*.root') if 'rebinned' in file and '0p3' in file and 'smoothed' not in file and skipcode in file and 'BKGNORM' in file and 'Combine' not in file and 'plots' not in file] 
 if rebinCombine: 
-    rfiles = [file for file in findfiles(templateDir, '*.root') if '_Combine_' in file and 'rebinned' in file and '0p3' in file and 'smoothed' not in file and skipcode in file and 'BKGNORM' not in file]
+    rfiles = [file for file in findfiles(templateDir, '*.root') if '_Combine_' in file and 'rebinned' in file and '0p3' in file and 'smoothed' not in file and skipcode in file and 'BKGNORM' in file]
 
 tfile = TFile(rfiles[0])
 
@@ -83,11 +83,10 @@ for rfile in rfiles:
             if 'jec' not in hist and 'jer' not in hist: rebinnedHists[hist].Write()   
 
 
-        jecUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if 'jec2018'+upTag in k.GetName()]
-        jerUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if 'jer2018'+upTag in k.GetName()]
+        jecUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if '__jec' in k.GetName() and upTag in k.GetName()]
+        jerUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if '__jer' in k.GetName() and upTag in k.GetName()]
 
         for hist in jecUphists+jerUphists:
-            #print hist
 
             if 'qcd' in hist: # don't bother
                 rebinnedHists[hist].Write()
@@ -99,7 +98,7 @@ for rfile in rfiles:
 
                     up = rebinnedHists[hist].Clone()
                     down = rebinnedHists[hist.replace(upTag,downTag)].Clone()
-                    central = rebinnedHists[hist.replace('__jec2018'+upTag,'').replace('__jer2018'+upTag,'')]
+                    central = rebinnedHists[hist[:hist.find('__je')]] # from the beginning to __je
                     
                     upratio = up.Clone('upratio')
                     upratio.Divide(central)
