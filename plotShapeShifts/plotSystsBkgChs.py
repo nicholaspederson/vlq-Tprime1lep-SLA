@@ -9,34 +9,64 @@ from tdrStyle import *
 setTDRStyle()
 R.gROOT.SetBatch(1)
 
-year = str(sys.argv[1])
+if len(sys.argv) > 1: year = str(sys.argv[1])
+else: year = 'combo'
 
 discriminant = 'DnnTprime'
-rfilePostFix = '_rebinned_stat0p3'
+rfilePostFix = '_Combine_BKGNORM_rebinned_stat0p3_smoothedLOWESS'
 BRStr = '_bW0p5_tZ0p25_tH0p25'
 
-lumi = 41.5
-lumiStr = '_41p53fb'
-outDir = os.getcwd()+'/templatesSR_Oct2019_2017/'
-templateFile = '/uscms_data/d3/escharni/CMSSW_10_2_10/src/singleLepAnalyzer/makeTemplates/templatesSR_October2019_TT_Rerun/templates_'+discriminant+'_TTM1400'+BRStr+lumiStr+rfilePostFix+'.root'
+lumi = 137
+lumiStr = '_137fb'
+outDir = os.getcwd()+'/templatesSRCR_Mar2021_TTcombined/'
+templateFile = '/uscms_data/d3/escharni/CMSSW_10_2_10/src/tptp_2018/makeTemplates/templatesSR_Mar2021_TT/templates_'+discriminant+BRStr+lumiStr+rfilePostFix+'.root'
 if year == '2018':
 	lumi = 59.7
 	lumiStr = '_59p69fb'
 	rfilePostFix = '_BKGNORM_rebinned_stat0p3'
-	outDir = os.getcwd()+'/templatesCRhtntagSR_Feb2020_2018/'
-	templateFile = '../makeTemplates/templatesCRhtntagSR_MVAfixTT/templates_'+discriminant+'_TTM1400'+BRStr+lumiStr+rfilePostFix+'.root'
 
 if not os.path.exists(outDir): os.system('mkdir '+outDir)
 if not os.path.exists(outDir+'/bkgs'): os.system('mkdir '+outDir+'/bkgs')
 if not os.path.exists(outDir+'/sigs'): os.system('mkdir '+outDir+'/sigs')
 
 saveKey = ''#
-channels = ['isE','isM','isL']
-tags = ['taggedbWbW','taggedtZbW','taggedtHbW','taggedtZHtZH','notVbW','notVtH','notVtZ','notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
-if year == '2018': tags = tags+['dnnLargeT','dnnLargeH','dnnLargeZ','dnnLargeW','dnnLargeBJwjet','dnnLargeBJttbar']
-systematics = ['pileup','jec','jer','jsf','muRFcorrdNewTop','muRFcorrdNewEwk','trigeffEl','trigeffMu','btag','ltag','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis']
-if year == '2017': systematics.append('prefire')
-systnames = {'pileup':'Pileup','prefire':'Prefiring','jec':'JEC','jer':'JER','jsf':'HT weight','muRFcorrdNewSig':'Ren./Fact. Sig','muRFcorrdNewTop':'Ren./Fact. Top','muRFcorrdNewEwk':'Ren./Fact. Ewk','muRFcorrdNewQCD':'Ren./Fact. QCD','trigeffEl':'El trigger','trigeffMu':'Mu trigger','btag':'DeepCSV bc','ltag':'DeepCSV udsg','Teff':'DeepAK8 T','Tmis':'DeepAK8 T mistag','Heff':'DeepAK8 H','Hmis':'DeepAK8 H mistag','Zeff':'DeepAK8 Z','Zmis':'DeepAK8 Z mistag','Weff':'DeepAK8 W','Wmis':'DeepAK8 W mistag','Beff':'DeepAK8 B','Bmis':'DeepAK8 B mistag','Jeff':'DeepAK8 Light','Jmis':'DeepAK8 Light mistag'}
+channels = ['isE','isM']
+tags = ['taggedbWbW','taggedtZbW','taggedtHbW','taggedtZHtZH','notVbW','notVtH','notVtZ','notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','dnnLargeTHZWB','dnnLargeJwjet','dnnLargeJttbar']
+if 'BB' in templateFile: tags = ['taggedtWtW','taggedbZtW','taggedbHtW','notVtW','notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','dnnLargeTHZWB','dnnLargeJwjet','dnnLargeJttbar']
+if 'templatesCR' in templateFile: tags = ['dnnLargeTHZWB','dnnLargeJwjet','dnnLargeJttbar']
+if 'templatesSRCR' not in templateFile: 
+        tags.remove('dnnLargeTHZWB')
+        tags.remove('dnnLargeJwjet')
+        tags.remove('dnnLargeJttbar')
+
+systnames = {
+        'pileup':'Pileup',
+        'prefire':'Prefiring',
+        'jec':'JEC',
+        'jer':'JER',
+        'jsf':'HT weight W',
+        'muRFcorrdNewSig':'Ren./Fact. Sig',
+        'muRFcorrdNewTop':'Ren./Fact. Top',
+        'muRFcorrdNewEwk':'Ren./Fact. Ewk',
+        'muRFcorrdNewQCD':'Ren./Fact. QCD',
+        'eltrig':'El trigger',
+        'mutrig':'Mu trigger',
+        'btag':'DeepCSV bc',
+        'ltag':'DeepCSV udsg',
+        'Teff':'DeepAK8 T',
+        'Tmis':'DeepAK8 T mistag',
+        'Heff':'DeepAK8 H',
+        'Hmis':'DeepAK8 H mistag',
+        'Zeff':'DeepAK8 Z',
+        'Zmis':'DeepAK8 Z mistag',
+        'Weff':'DeepAK8 W',
+        'Wmis':'DeepAK8 W mistag',
+        'Beff':'DeepAK8 B',
+        'Bmis':'DeepAK8 B mistag',
+        'dnnJ':'DeepAK8 QCD corr',
+        'toppt':'HT weight top'}
+systematics = systnames.keys()
+if year == '2018': systematics.remove('prefire')
 		
 RFile = R.TFile(templateFile)
 
@@ -51,7 +81,7 @@ for syst in systematics:
 		for tag in tags:
 			print '-----------------------------'+syst+', '+ch+', '+tag+'--------------------------------'
 			histname = discriminant
-			if discriminant == 'DnnTprime' and ('dnnLarge' in tag): histname = 'HTNtag'
+			if 'prime' in discriminant and ('dnnLarge' in tag): histname = 'HTNtag'
 
 			Prefix = histname+lumiStr+'_'+channels[0]+'_'+tag+'_DeepAK8__'+bkgList[0]
 			try: 
@@ -65,15 +95,15 @@ for syst in systematics:
 
 			if ch != 'isL':
 				hNm = RFile.Get(Prefix.replace(channels[0],ch)).Clone()
-				hUp = RFile.Get(Prefix.replace(channels[0],ch)+'__'+syst+'__plus').Clone()
-				hDn = RFile.Get(Prefix.replace(channels[0],ch)+'__'+syst+'__minus').Clone()
+				hUp = RFile.Get(Prefix.replace(channels[0],ch)+'__'+syst+'Up').Clone()
+				hDn = RFile.Get(Prefix.replace(channels[0],ch)+'__'+syst+'Down').Clone()
 			else:
 				hNm = RFile.Get(Prefix).Clone()
-				hUp = RFile.Get(Prefix+'__'+syst+'__plus').Clone()
-				hDn = RFile.Get(Prefix+'__'+syst+'__minus').Clone()
+				hUp = RFile.Get(Prefix+'__'+syst+'Up').Clone()
+				hDn = RFile.Get(Prefix+'__'+syst+'Down').Clone()
 				hNm.Add(RFile.Get(Prefix.replace(channels[0],channels[1])))
-				hUp.Add(RFile.Get(Prefix.replace(channels[0],channels[1])+'__'+syst+'__plus'))
-				hDn.Add(RFile.Get(Prefix.replace(channels[0],channels[1])+'__'+syst+'__minus'))
+				hUp.Add(RFile.Get(Prefix.replace(channels[0],channels[1])+'__'+syst+'Up'))
+				hDn.Add(RFile.Get(Prefix.replace(channels[0],channels[1])+'__'+syst+'Down'))
 				
 			for bkg in bkgList:
 				if ch==channels[0] and bkg==bkgList[0]: 
@@ -91,7 +121,7 @@ for syst in systematics:
 							htempUp = RFile.Get(Prefix.replace(channels[0],ch).replace(bkgList[0],bkg)).Clone()
 							hUp.Add(htempUp)
 						else:
-							htempUp = RFile.Get(Prefix.replace(channels[0],ch).replace(bkgList[0],bkg)+'__'+syst+'__plus').Clone()
+							htempUp = RFile.Get(Prefix.replace(channels[0],ch).replace(bkgList[0],bkg)+'__'+syst+'Up').Clone()
 							hUp.Add(htempUp)
 					except:pass
 					try: 
@@ -99,7 +129,7 @@ for syst in systematics:
 							htempDown = RFile.Get(Prefix.replace(channels[0],ch).replace(bkgList[0],bkg)).Clone()
 							hDn.Add(htempDown)
 						else:
-							htempDown = RFile.Get(Prefix.replace(channels[0],ch).replace(bkgList[0],bkg)+'__'+syst+'__minus').Clone()
+							htempDown = RFile.Get(Prefix.replace(channels[0],ch).replace(bkgList[0],bkg)+'__'+syst+'Down').Clone()
 							hDn.Add(htempDown)
 					except:pass
 				else:
@@ -118,9 +148,9 @@ for syst in systematics:
 							htempUp = RFile.Get(Prefix.replace(channels[0],channels[1]).replace(bkgList[0],bkg)).Clone()
 							hUp.Add(htempUp)
 						else:
-							htempUp = RFile.Get(Prefix.replace(bkgList[0],bkg)+'__'+syst+'__plus').Clone()
+							htempUp = RFile.Get(Prefix.replace(bkgList[0],bkg)+'__'+syst+'Up').Clone()
 							hUp.Add(htempUp)
-							htempUp = RFile.Get(Prefix.replace(channels[0],channels[1]).replace(bkgList[0],bkg)+'__'+syst+'__plus').Clone()
+							htempUp = RFile.Get(Prefix.replace(channels[0],channels[1]).replace(bkgList[0],bkg)+'__'+syst+'Up').Clone()
 							hUp.Add(htempUp)
 					except:pass
 					try: 
@@ -130,9 +160,9 @@ for syst in systematics:
 							htempDown = RFile.Get(Prefix.replace(channels[0],channels[1]).replace(bkgList[0],bkg)).Clone()
 							hDn.Add(htempDown)
 						else:
-							htempDown = RFile.Get(Prefix.replace(bkgList[0],bkg)+'__'+syst+'__minus').Clone()
+							htempDown = RFile.Get(Prefix.replace(bkgList[0],bkg)+'__'+syst+'Down').Clone()
 							hDn.Add(htempDown)
-							htempDown = RFile.Get(Prefix.replace(channels[0],channels[1]).replace(bkgList[0],bkg)+'__'+syst+'__minus').Clone()
+							htempDown = RFile.Get(Prefix.replace(channels[0],channels[1]).replace(bkgList[0],bkg)+'__'+syst+'Down').Clone()
 							hDn.Add(htempDown)
 					except:pass
 
@@ -334,7 +364,7 @@ for syst in systematics:
 			hUp.Reset()
 			hDn.Reset()
 
-			Prefix = histname+lumiStr+'_'+channels[0]+'_'+tag+'_DeepAK8__sig'
+			Prefix = histname+lumiStr+'_'+channels[0]+'_'+tag+'_DeepAK8__TTM1400'
 			try: 
 				if ch != 'isL': hNm = RFile.Get(Prefix.replace(channels[0],ch)).Clone()
 				else: 
@@ -346,15 +376,15 @@ for syst in systematics:
 
 			if ch != 'isL':
 				hNm = RFile.Get(Prefix.replace(channels[0],ch)).Clone()
-				hUp = RFile.Get(Prefix.replace(channels[0],ch)+'__'+systtemp+'__plus').Clone()
-				hDn = RFile.Get(Prefix.replace(channels[0],ch)+'__'+systtemp+'__minus').Clone()
+				hUp = RFile.Get(Prefix.replace(channels[0],ch)+'__'+systtemp+'Up').Clone()
+				hDn = RFile.Get(Prefix.replace(channels[0],ch)+'__'+systtemp+'Down').Clone()
 			else:
 				hNm = RFile.Get(Prefix).Clone()
-				hUp = RFile.Get(Prefix+'__'+systtemp+'__plus').Clone()
-				hDn = RFile.Get(Prefix+'__'+systtemp+'__minus').Clone()
+				hUp = RFile.Get(Prefix+'__'+systtemp+'Up').Clone()
+				hDn = RFile.Get(Prefix+'__'+systtemp+'Down').Clone()
 				hNm.Add(RFile.Get(Prefix.replace(channels[0],channels[1])))
-				hUp.Add(RFile.Get(Prefix.replace(channels[0],channels[1])+'__'+systtemp+'__plus'))
-				hDn.Add(RFile.Get(Prefix.replace(channels[0],channels[1])+'__'+systtemp+'__minus'))
+				hUp.Add(RFile.Get(Prefix.replace(channels[0],channels[1])+'__'+systtemp+'Up'))
+				hDn.Add(RFile.Get(Prefix.replace(channels[0],channels[1])+'__'+systtemp+'Down'))
 				
 
 			#hNm.Rebin(2);
