@@ -48,6 +48,9 @@ rebinCombine = True #else rebins theta templates ## COME SET TO TRUE WHEN DOING 
 #print "rebin combine Before: ", rebinCombine
 if len(sys.argv)>5: rebinCombine=bool(eval(sys.argv[5])) 
 
+singletOnly = False
+if len(sys.argv)>6: singletOnly = bool(eval(sys.argv[6]))
+
 lumi16 = '35p92'
 lumi17 = '41p53'
 lumi18 = '59p74'
@@ -434,7 +437,7 @@ drop = ['__Jeff','__Jmis']
 shortyears = ['16','17','18']
 
 for rfile in rfiles: 
-        #if 'W0p5' not in rfile: continue
+        if singletOnly and 'W0p5' not in rfile: continue
 	print "REBINNING FILES:"
         print '\t',rfile
         print '\t',rfile.replace(lumi17,lumi16).replace(inputfolder17,inputfolder16)
