@@ -11,40 +11,72 @@ from utils import *
 gROOT.SetBatch(1)
 start_time = time.time()
 
-lumi=100.0 #for plots #56.1 #
+lumi=35.9
 lumi2017=41.5
-lumiInTemplates=str(targetlumi/1000).replace('.','p') # 1/fb
-lumiInTemplates2017=str(targetlumi2017/1000).replace('.','p')
-
-iPlot='dnnLargest'
+lumi2018=59.7
+lumiInTemplates2016=str(targetlumi/1000).replace('.','p')
+lumiInTemplates2017=str(targetlumi2017/1000).replace('.','p') # 1/fb
+lumiInTemplates2018=str(targetlumi2018/1000).replace('.','p')
+ 
+iPlot='HT'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 region='PS' #SR,TTCR,WJCR
 if len(sys.argv)>2: region=str(sys.argv[2])
 isCategorized=False
 if len(sys.argv)>3: isCategorized=bool(eval(sys.argv[3]))
-pfix='templates'+region
+pfix2016='templates'+region
+pfix2017='templates'+region
+pfix2018='templates'+region
 if not isCategorized: 
-	pfix='kinematics'+region
-	pfix2='kinematics'+region
-pfix+='_July2019_With_Uncertainties'
-pfix2+='_July_MVA_Update_Round2'
+	pfix2016='kinematics'+region
+	pfix2017='kinematics'+region
+        pfix2018='kinematics'+region
+pfix2016+='_Feb2021TT'
+pfix2017+='_Feb2021_TT'
+pfix2018+='_Feb2021_TT'
 
 if len(sys.argv)>4: pfix=str(sys.argv[4])
-templateDir=os.getcwd()+'/'+pfix+'/'
-templateDir2017='/uscms_data/d3/escharni/CMSSW_10_2_10/src/singleLepAnalyzer/makeTemplates/'+pfix2+'/'
+#templateDir=os.getcwd()+'/'+pfix+'/'
+templateDir2016='/uscms_data/d3/cholz/CMSSW_10_2_10/src/tptp_2016/makeTemplates/'+pfix2016+'/'
+templateDir2017='/uscms_data/d3/escharni/CMSSW_10_2_10/src/singleLepAnalyzer/makeTemplates/'+pfix2017+'/'
+templateDir2018='/uscms_data/d3/escharni/CMSSW_10_2_10/src/tptp_2018/makeTemplates/'+pfix2018+'/'
 
 print 'Plotting',region,'is categorized?',isCategorized
 
 isRebinned=''#_rebinned_stat0p3' #post for ROOT file names
-if len(sys.argv)>7: isRebinned='_rebinned_stat'+str(sys.argv[7])
+if len(sys.argv)>7: 
+        isRebinned='_rebinned_stat'+str(sys.argv[7])
+        if 'CR' in region and isCategorized: 
+                isRebinned='_chi2_rebinned_stat'+str(sys.argv[7])
+
 BRstr=''
-if isCategorized: BRstr='bW0p5_tZ0p25_tH0p25_'
+if isCategorized:
+	BRstr='bW0p5_tZ0p25_tH0p25_'
+	if 'BB' in pfix: BRstr = 'tW0p5_bZ0p25_bH0p25_'
 saveKey = '' # tag for plot names
 
+siglabel = 'sig'
+datalabel = 'DATA'
+shiftlist = ['__plus','__minus']
+if isCategorized: 
+        siglabel = 'TTM1200'
+        datalabel = 'data_obs'
+        shiftlist = ['Up','Down']
 sig1='TTM1200' #  choose the 1st signal to plot
 sig1leg='T#bar{T} (1.2 TeV)'
 sig2='TTM1500' #  choose the 2nd signal to plot
 sig2leg='T#bar{T} (1.5 TeV)'
+if 'BB' in pfix2016:
+        if 'BB' not in pfix2017 or 'BB' not in pfix2018:
+                print 'BB APPEARS IN ONLY ONE YEAR!'
+                exit()
+        if isCategorized: 
+                siglabel = 'BBM1200'
+	sig1 = sig1.replace('TT','BB')
+	sig2 = sig2.replace('TT','BB')
+	sig1leg = sig1leg.replace('T#bar{T}','B#bar{B}')
+	sig2leg = sig2leg.replace('T#bar{T}','B#bar{B}')
+#print 'sig1leg: ', sig1leg
 drawNormalized = False # STACKS CAN'T DO THIS...bummer
 scaleSignals = True
 if not isCategorized and 'CR' not in region: scaleSignals = True
@@ -53,16 +85,14 @@ if 'SR' in region: sigScaleFact = 10
 if 'Nm1' in iPlot: sigScaleFact = sigScaleFact/5
 print 'Scaling signals?',scaleSignals
 print 'Scale factor = ',sigScaleFact
-tempsig='templates_'+iPlot+'_'+sig1+'_'+BRstr+lumiInTemplates+'fb'+isRebinned+'.root'#+'_Data18.root'
-tempsig2017='templates_'+iPlot+'_'+sig1+'_'+BRstr+lumiInTemplates2017+'fb'+isRebinned+'.root'
 
 bkgProcList = ['ewk','top','qcd']
 if '53' in sig1: bkgHistColors = {'top':kRed-9,'ewk':kBlue-7,'qcd':kOrange-5} #X53X53
 elif 'HTB' in sig1: bkgHistColors = {'ttbar':kGreen-3,'wjets':kPink-4,'top':kAzure+8,'ewk':kMagenta-2,'qcd':kOrange+5} #HTB
 else: bkgHistColors = {'top':kAzure+8,'ewk':kMagenta-2,'qcd':kOrange+5} #TT
 
-if len(isRebinned)>0: systematicList = ['pileup','jec','muRFcorrdNewTop','muRFcorrdNewEwk','muRFcorrdNewQCD','btag','jsf','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag']
-else: systematicList = ['muRFcorrd','pileup','jsf','jec','btag','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jer','ltag']
+if len(isRebinned)>0: systematicList = ['toppt','prefire','pileup','muRFcorrdNewTop','muRFcorrdNewEwk','muRFcorrdNewQCD','jsf','Teff','Heff','Zeff','Weff','Beff','Jeff','jer2016','elTrig2016','muTrig2016','jec2016','pdfNew2016','Tmis2016','Hmis2016','Zmis2016','Wmis2016','Bmis2016','Jmis2016','dnnJ','elIdSF']
+else: systematicList = ['muRFcorrd','pileup','prefire','trigeffEl','trigeffMu','jsf','Teff','Tmis','Heff','Hmis','Zeff','Zmis','Weff','Wmis','Beff','Bmis','Jeff','Jmis','jec','btag','jer','ltag','toppt','dnnJ','elIdSF']
 
 doAllSys = True
 print 'doAllSys: ',doAllSys,'systematicList: ',systematicList
@@ -91,15 +121,13 @@ if 'algos' in region or 'SR' in region or isCategorized:
 	algolist = ['DeepAK8']#,'BEST','DeepAK8DC']
 taglist = ['all']
 if isCategorized == True: 
-	taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notV','notVtH','notVtZ','notVbW']
-	if '_' in pfix: taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW',
+	if 'CR' in region: 
+                taglist=['dnnLargeT','dnnLargeH','dnnLargeW','dnnLargeZ','dnnLargeB','dnnLargeJwjet','dnnLargeJttbar'] 
+                if iPlot == 'HTdnnL': taglist = ['dnnLargeTHZWB','dnnLargeJttbar','dnnLargeJwjet']
+	elif 'BB' in pfix: taglist=['taggedtWtW','taggedbZtW','taggedbHtW','notVbH','notVbZ','notVtW',
 					'notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
-	#isEMlist = ['L']
-	#taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtZ','notVbW','notVtH',
-	#	 'notV3W0Z0H0T',
-	#	 'notV2W0Z0H0T','notV2pW0Z0H1pT','notV2pW0Z1pH0pT','notV2pW1pZ0pH0pT',
-	#	 'notV1W0Z0H0T','notV1W0Z1H0T','notV1W0Z0H1pT','notV1W0Z1H1pT','notV1W0Z2pH0pT','notV1W1Z0H0pT','notV1W1Z1pH0pT','notV1W2pZ0pH0pT',
-	#	 'notV0W0Z0H0T','notV0W0Z1H0T','notV0W0Z0H1pT','notV0W0Z1H1pT','notV0W0Z2pH0pT','notV0W1Z0H0pT','notV0W1Z1pH0pT','notV0W2pZ0pH0pT']
+	elif 'TT' in pfix: taglist=['taggedbWbW','taggedtHbW','taggedtZbW','taggedtZHtZH','notVtH','notVtZ','notVbW',
+					'notV2pT','notV01T2pH','notV01T1H','notV1T0H','notV0T0H1pZ','notV0T0H0Z2pW','notV0T0H0Z01W']
 
 print taglist, algolist
 
@@ -110,10 +138,10 @@ if isCategorized and iPlot != 'YLD':
 		tagList.append(tag)
 else: tagList = list(itertools.product(taglist,algolist))
 
-lumiSys = 0.023 # lumi uncertainty
-trigSys = 0.05 # trigger uncertainty, now really reco uncertainty
+lumiSys = 0.025 # lumi uncertainty
+trigSys = 0.0 # trigger uncertainty, now really reco uncertainty 
 lepIdSys = 0.02 # lepton id uncertainty
-lepIsoSys = 0.02 # lepton isolation uncertainty
+lepIsoSys = 0.015 # lepton isolation uncertainty
 corrdSys = math.sqrt(lumiSys**2+trigSys**2+lepIdSys**2+lepIsoSys**2) #cheating while total e/m values are close
 
 def getNormUnc(hist,ibin,modelingUnc):
@@ -125,7 +153,7 @@ def getNormUnc(hist,ibin,modelingUnc):
 def formatUpperHist(histogram,th1hist):
 	histogram.GetXaxis().SetLabelSize(0)
 	lowside = th1hist.GetBinLowEdge(1)
-	if iPlot=='ST': lowside = th1hist.GetBinLowEdge(8)-50.0
+	#if iPlot=='ST': lowside = th1hist.GetBinLowEdge(8)-50.0
 	highside = th1hist.GetBinLowEdge(th1hist.GetNbinsX()+1)
 	if iPlot=='dnnLargest': highside = th1hist.GetBinLowEdge(7)-0.1
 	histogram.GetXaxis().SetRangeUser(lowside,highside)
@@ -185,13 +213,32 @@ def formatLowerHist(histogram):
 	else: histogram.GetYaxis().SetRangeUser(0.1,1.9)
 	histogram.GetYaxis().CenterTitle()
 
-RFile1 = TFile(templateDir+tempsig.replace(sig1,sig1))
-print templateDir+tempsig.replace(sig1,sig1)
-RFile2 = TFile(templateDir+tempsig.replace(sig1,sig2))
+tempsig2016='templates_'+iPlot+'_'+sig1+'_'+BRstr+lumiInTemplates2016+'fb'+isRebinned+'.root'
+tempsig2017='templates_'+iPlot+'_'+sig1+'_'+BRstr+lumiInTemplates2017+'fb'+isRebinned+'.root'#+'_Data18.root'
+tempsig2018='templates_'+iPlot+'_'+sig1+'_'+BRstr+lumiInTemplates2018+'fb'+isRebinned+'.root'
+if isCategorized: 
+        tempsig2016='templates_'+iPlot+'_'+BRstr+lumiInTemplates2016+'_Combine'+isRebinned+'.root' # open the Combine file
+        tempsig2017='templates_'+iPlot+'_'+BRstr+lumiInTemplates2017+'_Combine'+isRebinned+'.root' # open the Combine file
+        tempsig2018='templates_'+iPlot+'_'+BRstr+lumiInTemplates2018+'_Combine'+isRebinned+'.root' # open the Combine file
+RFile1 = TFile(templateDir2016+tempsig2016.replace(sig1,sig1))
 RFile3 = TFile(templateDir2017+tempsig2017.replace(sig1,sig1))
-RFile4 = TFile(templateDir2017+tempsig2017.replace(sig1,sig2))
+RFile5 = TFile(templateDir2018+tempsig2018.replace(sig1,sig1))
+print templateDir2016+tempsig2016.replace(sig1,sig1)
+if not isCategorized: 
+        RFile2 = TFile(templateDir2016+tempsig2016.replace(sig1,sig2))
+        RFile4 = TFile(templateDir2017+tempsig2017.replace(sig1,sig2))
+        RFile6 = TFile(templateDir2018+tempsig2018.replace(sig1,sig2))
+
+templateDir2016 = os.getcwd()+'/'+pfix+'/'
+if not os.path.exists(templateDir2016): os.system('mkdir -p '+templateDir2016)
+
 print RFile1
 print RFile3
+print RFile5
+if not isCategorized:
+        print RFile2
+        print RFile4
+        print RFile6
 bkghists = {}
 bkghistsmerged = {}
 systHists = {}
@@ -199,45 +246,66 @@ totBkgTemp1 = {}
 totBkgTemp2 = {}
 totBkgTemp3 = {}
 for tag in tagList:
+	perNGeV = 0.01
+	if 'wjet' in tag[0] or 'ttbar' in tag[0]: perNGeV = 100
+	elif 'dnnLarge' in tag[0]: perNGeV = 1
+	print '------------------ ',tag[0],' with perNGeV = ',perNGeV,' -----------------------'
 	tagStr=tag[0]+'_'+tag[1]
 	for isEM in isEMlist:
-		histPrefix=iPlot+'_'+lumiInTemplates+'fb_'
-                print 'hisPrefix:'+histPrefix
+		histPrefix2016=iPlot+'_'+lumiInTemplates2016+'fb_'
                 histPrefix2017=iPlot+'_'+lumiInTemplates2017+'fb_'
+                histPrefix2018=iPlot+'_'+lumiInTemplates2018+'fb_'
+                if isCategorized:
+                        if region=='CR': 
+                                histPrefix2016 += 'isCR_'
+                                histPrefix2017 += 'isCR_'
+                                histPrefix2018 += 'isCR_'
+                        else:
+                                histPrefix2016 += 'isSR_'
+                                histPrefix2017 += 'isSR_'
+                                histPrefix2018 += 'isSR_'
+                print 'hisPrefix:'+histPrefix2016
+                print 'hisPrefix:'+histPrefix2017
+                print 'hisPrefix:'+histPrefix2018
 		catStr='is'+isEM+'_'+tagStr
-		histPrefix+=catStr
-                histPrefix2017+=catStr
+		histPrefix2016+=catStr
+		histPrefix2017+=catStr
+                histPrefix2018+=catStr
 		totBkg = 0.
 		for proc in bkgProcList: 
 			try: 				
 				#print RFile1.ls()
 				#print histPrefix+'__'+proc
-				bkghists[proc+catStr] = RFile1.Get(histPrefix+'__'+proc).Clone()+RFile3.Get(histPrefix2017+'__'+proc).Clone()
+				bkghists[proc+catStr] = RFile1.Get(histPrefix2016+'__'+proc).Clone()+RFile3.Get(histPrefix2017+'__'+proc).Clone()+RFile5.Get(histPrefix2018+'__'+proc).Clone()
 				totBkg += bkghists[proc+catStr].Integral()
 			except:
 				print "There is no "+proc+"!!!!!!!!"
-				print "tried to open "+histPrefix+'__'+proc
+				print "tried to open "+histPrefix2016+'__'+proc
 				pass
-		print 'HERE: '+histPrefix+'__DATA and '+histPrefix2017+'__DATA'
-		hData = RFile1.Get(histPrefix+'__DATA').Clone()+RFile3.Get(histPrefix2017+'__DATA').Clone()
+		print 'HERE: '+histPrefix2016+'__'+datalabel+' and '+histPrefix2017+'__'+datalabel+' and '+histPrefix2018+'__'+datalabel
+		hData = RFile1.Get(histPrefix2016+'__'+datalabel).Clone()+RFile3.Get(histPrefix2017+'__'+datalabel).Clone()+RFile5.Get(histPrefix2018+'__'+datalabel).Clone()
 		histrange = [hData.GetBinLowEdge(1),hData.GetBinLowEdge(hData.GetNbinsX()+1)]
-		gaeData = TGraphAsymmErrors(hData.Clone(hData.GetName().replace('DATA','gaeDATA')))
-		hsig1 = RFile1.Get(histPrefix+'__sig').Clone(histPrefix+'__sig1')+RFile3.Get(histPrefix2017+'__sig').Clone(histPrefix2017+'__sig1')
-		hsig2 = RFile2.Get(histPrefix+'__sig').Clone(histPrefix+'__sig2')+RFile4.Get(histPrefix2017+'__sig').Clone(histPrefix2017+'__sig2')
-                #hsig3 = RFile3.Get(histPrefix2017+'__sig').Clone(histPrefix2017+'__sig1')
-                #hsig4 = RFile4.Get(histPrefix2017+'__sig').Clone(histPrefix2017+'__sig2')
+		gaeData = TGraphAsymmErrors(hData.Clone(hData.GetName().replace(datalabel,'gaeDATA')))
+
+		hsig1 = RFile1.Get(histPrefix2016+'__'+siglabel).Clone(histPrefix2016+'__sig1')+RFile3.Get(histPrefix2017+'__'+siglabel).Clone(histPrefix2017+'__sig1')+RFile5.Get(histPrefix2018+'__'+siglabel).Clone(histPrefix2018+'__sig1')
+                if isCategorized:
+                        hsig2 = RFile1.Get(histPrefix2016+'__'+siglabel.replace(sig1,sig2)).Clone(histPrefix2016+'__sig2')+RFile3.Get(histPrefix2017+'__'+siglabel.replace(sig1,sig2)).Clone(histPrefix2017+'__sig2')+RFile5.Get(histPrefix2018+'__'+siglabel.replace(sig1,sig2)).Clone(histPrefix2018+'__sig1')
+                else:
+                        hsig2 = RFile2.Get(histPrefix2016+'__'+siglabel).Clone(histPrefix2016+'__sig2')+RFile4.Get(histPrefix2017+'__'+siglabel).Clone(histPrefix2017+'__sig2')+RFile6.Get(histPrefix2018+'__'+siglabel).Clone(histPrefix2018+'__sig1')
 		hsig1.Scale(xsec[sig1])
 		hsig2.Scale(xsec[sig2])
-                #hsig3.Scale(xsec[sig1])
-                #hsig4.Scale(xsec[sig2])
+                if len(isRebinned) > 0: 
+                        hsig1.Scale(10.0) # 100fb input -> 1pb
+                        hsig2.Scale(10.0)
+
 		if doNormByBinWidth:
-			poissonNormByBinWidth(gaeData,hData)
+			poissonNormByBinWidth(gaeData,hData,perNGeV)
 			for proc in bkgProcList:
-				try: normByBinWidth(bkghists[proc+catStr])
+				try: normByBinWidth(bkghists[proc+catStr],perNGeV)
 				except: pass
-			normByBinWidth(hsig1)
-			normByBinWidth(hsig2)
-			normByBinWidth(hData)
+			normByBinWidth(hsig1,perNGeV)
+			normByBinWidth(hsig2,perNGeV)
+			normByBinWidth(hData,perNGeV)
 		else: poissonErrors(gaeData)
 		# Yes, there are easier ways using the TH1's but
 		# it would be rough to swap objects lower down
@@ -258,13 +326,29 @@ for tag in tagList:
 
 		if doAllSys:
 			for syst in systematicList:
-				for ud in ['minus','plus']:
+                                syst16 = syst
+                                syst17 = syst
+                                syst18 = syst
+                                if '2016' in syst:
+                                        syst17 = syst.replace('2016','2017')
+                                        syst18 = syst.replace('2016','2018')
+                                        if 'pdf' in syst: 
+                                                syst17 = 'pdfNew20172018'
+                                                syst18 = 'pdfNew20172018'
+				for ud in shiftlist:
 					for proc in bkgProcList:
 						try: 
-							systHists[proc+catStr+syst+ud] = RFile1.Get(histPrefix+'__'+proc+'__'+syst+'__'+ud).Clone()+RFile3.Get(histPrefix2017+'__'+proc+'__'+syst+'__'+ud).Clone()
-							if doNormByBinWidth: normByBinWidth(systHists[proc+catStr+syst+ud])
+							if 'prefire' not in syst and 'dnnJ' not in syst:
+                                                                systHists[proc+catStr+syst+ud] = RFile1.Get(histPrefix2016+'__'+proc+'__'+syst16+ud).Clone()+RFile3.Get(histPrefix2017+'__'+proc+'__'+syst17+ud).Clone()+RFile5.Get(histPrefix2018+'__'+proc+'__'+syst18+ud).Clone()
+                                                                if doNormByBinWidth: normByBinWidth(systHists[proc+catStr+syst+ud],perNGeV)
+                                                        elif 'prefire' in syst:
+                                                                systHists[proc+catStr+syst+ud] = RFile1.Get(histPrefix2016+'__'+proc+'__'+syst16+ud).Clone()+RFile3.Get(histPrefix2017+'__'+proc+'__'+syst17+ud).Clone()+RFile5.Get(histPrefix2018+'__'+proc).Clone() # 2018 has no prefire
+                                                                if doNormByBinWidth: normByBinWidth(systHists[proc+catStr+syst+ud],perNGeV)
+                                                        elif 'dnnJ' in syst:
+                                                                systHists[proc+catStr+syst+ud] = RFile1.Get(histPrefix2016+'__'+proc).Clone()+RFile3.Get(histPrefix2017+'__'+proc+'__'+syst17+ud).Clone()+RFile5.Get(histPrefix2018+'__'+proc+'__'+syst18+ud).Clone() # 2016 has no dnnJ
+                                                                
 						except: 
-							print 'FAILED to open '+proc+'_'+syst+'_'+ud+'_'
+							print 'FAILED to open '+proc+'_'+syst+ud
 							pass
 
 		totBkgTemp1[catStr] = TGraphAsymmErrors(bkgHT.Clone(bkgHT.GetName()+'shapeOnly'))
@@ -282,8 +366,8 @@ for tag in tagList:
 				for syst in systematicList:
 					for proc in bkgProcList:
 						try:
-							errorPlus = systHists[proc+catStr+syst+'plus'].GetBinContent(ibin)-bkghists[proc+catStr].GetBinContent(ibin)
-							errorMinus = bkghists[proc+catStr].GetBinContent(ibin)-systHists[proc+catStr+syst+'minus'].GetBinContent(ibin)
+							errorPlus = systHists[proc+catStr+syst+shiftlist[0]].GetBinContent(ibin)-bkghists[proc+catStr].GetBinContent(ibin)
+							errorMinus = bkghists[proc+catStr].GetBinContent(ibin)-systHists[proc+catStr+syst+shiftlist[1]].GetBinContent(ibin)
 							if errorPlus > 0: errorUp += errorPlus**2
 							else: errorDn += errorPlus**2
 							if errorMinus > 0: errorDn += errorMinus**2
@@ -394,8 +478,9 @@ for tag in tagList:
 		gaeData.SetMinimum(0.015)
 		gaeData.SetTitle("")
 		if doNormByBinWidth:
-			if iPlot == 'DnnTprime': gaeData.GetYaxis().SetTitle("< Events / 0.01 >")
-			else: gaeData.GetYaxis().SetTitle("< Events / 1 GeV >")
+			if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): gaeData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+			else: gaeData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
+			
 		else: gaeData.GetYaxis().SetTitle("Events / bin")
 		formatUpperHist(gaeData,hData)
 		uPad.cd()
@@ -407,16 +492,49 @@ for tag in tagList:
 		if blind: 
 			hsig1.SetMinimum(0.015)
 			if doNormByBinWidth:
-				if iPlot == 'DnnTprime': hsig1.GetYaxis().SetTitle("< Events / 0.01 >")
-				else: hsig1.GetYaxis().SetTitle("< Events / 1 GeV >")
+				if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): hsig1.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+				else: hsig1.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
 			else: hsig1.GetYaxis().SetTitle("Events / bin")
 			hsig1.SetMaximum(1.5*hData.GetMaximum())
 			if iPlot=='Tau21Nm1': hsig1.SetMaximum(1.5*hData.GetMaximum())
 			formatUpperHist(hsig1,hsig1)
 			hsig1.Draw("HIST")
 		if doNormByBinWidth:
-			if iPlot == 'DnnTprime': hData.GetYaxis().SetTitle("< Events / 0.01 >")
-			else: hData.GetYaxis().SetTitle("< Events / 1 GeV >")
+			if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): hData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+			else: hData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
+		else: hData.GetYaxis().SetTitle("Events / bin")
+		if doNormByBinWidth:
+			if iPlot == 'DnnTprime': gaeData.GetYaxis().SetTitle("< Events / 0.01 >")
+			else: gaeData.GetYaxis().SetTitle("< Events / 1 GeV >")
+		else: gaeData.GetYaxis().SetTitle("Events / bin")
+		formatUpperHist(gaeData,hData)
+		uPad.cd()
+		gaeData.SetTitle("")
+		if doNormByBinWidth:
+			if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): gaeData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+			else: gaeData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
+			
+		else: gaeData.GetYaxis().SetTitle("Events / bin")
+		formatUpperHist(gaeData,hData)
+		uPad.cd()
+		gaeData.SetTitle("")
+		if compareShapes: 
+			hsig1.Scale(totBkg/hsig1.Integral())
+			hsig2.Scale(totBkg/hsig2.Integral())
+		if not blind: gaeData.Draw("apz")
+		if blind: 
+			hsig1.SetMinimum(0.015)
+			if doNormByBinWidth:
+				if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): hsig1.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+				else: hsig1.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
+			else: hsig1.GetYaxis().SetTitle("Events / bin")
+			hsig1.SetMaximum(1.5*hData.GetMaximum())
+			if iPlot=='Tau21Nm1': hsig1.SetMaximum(1.5*hData.GetMaximum())
+			formatUpperHist(hsig1,hsig1)
+			hsig1.Draw("HIST")
+		if doNormByBinWidth:
+			if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): hData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+			else: hData.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
 		else: hData.GetYaxis().SetTitle("Events / bin")
 		
 		stackbkgHT.Draw("SAME HIST")
@@ -519,7 +637,7 @@ for tag in tagList:
 		prelimTex.SetTextSize(0.05)
 		if blind: prelimTex.SetTextSize(0.05)
 		prelimTex.SetLineWidth(2)
-		prelimTex.DrawLatex(0.95,0.94,str(lumi)+" fb^{-1} (13 TeV)")
+		prelimTex.DrawLatex(0.95,0.94,str(lumi+lumi2017+lumi2018)+" fb^{-1} (13 TeV)")
 
 		prelimTex2=TLatex()
 		prelimTex2.SetNDC()
@@ -638,9 +756,9 @@ for tag in tagList:
 			pull.Draw("HIST")
 
 		#c1.Write()
-		savePrefix = templateDir+templateDir.split('/')[-2]+'Combineplots/'
+		savePrefix = templateDir2016+templateDir2016.split('/')[-2]+'Combineplots/'#I think you will want to change templateDir here to match which data is being analyzed!!!!!!!
 		if not os.path.exists(savePrefix): os.system('mkdir '+savePrefix)
-		savePrefix+=histPrefix+isRebinned.replace('_rebinned_stat1p1','')+saveKey
+		savePrefix+=histPrefix2016+isRebinned.replace('_rebinned_stat1p1','')+saveKey
 		if doRealPull: savePrefix+='_pull'
 		if doNormByBinWidth: savePrefix+='_NBBW'
 		if drawNormalized: savePrefix+='_norm'
@@ -666,35 +784,75 @@ for tag in tagList:
 					
 	# Making plots for e+jets/mu+jets combined #
 
-	histPrefixE = iPlot+'_'+lumiInTemplates+'fb_isE_'+tagStr
-	histPrefixM = iPlot+'_'+lumiInTemplates+'fb_isM_'+tagStr
+	histPrefixE2016 = iPlot+'_'+lumiInTemplates2016+'fb_isE_'+tagStr
+	histPrefixM2016 = iPlot+'_'+lumiInTemplates2016+'fb_isM_'+tagStr
         histPrefixE2017 = iPlot+'_'+lumiInTemplates2017+'fb_isE_'+tagStr
         histPrefixM2017 = iPlot+'_'+lumiInTemplates2017+'fb_isM_'+tagStr
+        histPrefixE2018 = iPlot+'_'+lumiInTemplates2018+'fb_isE_'+tagStr
+        histPrefixM2018 = iPlot+'_'+lumiInTemplates2018+'fb_isM_'+tagStr
+        if isCategorized:
+                if region=='CR': 
+                        histPrefixE2016 = histPrefixE2016.replace('isE','isCR_isE')
+                        histPrefixE2017 = histPrefixE2017.replace('isE','isCR_isE')
+                        histPrefixE2018 = histPrefixE2018.replace('isE','isCR_isE')
+                        histPrefixM2016 = histPrefixM2016.replace('isM','isCR_isM')
+                        histPrefixM2017 = histPrefixM2017.replace('isM','isCR_isM')
+                        histPrefixM2018 = histPrefixM2018.replace('isM','isCR_isM')
+                else:
+                        histPrefixE2016 = histPrefixE2016.replace('isE','isSR_isE')
+                        histPrefixE2017 = histPrefixE2017.replace('isE','isSR_isE')
+                        histPrefixE2018 = histPrefixE2018.replace('isE','isSR_isE')
+                        histPrefixM2016 = histPrefixM2016.replace('isM','isSR_isM')
+                        histPrefixM2017 = histPrefixM2017.replace('isM','isSR_isM')
+                        histPrefixM2018 = histPrefixM2018.replace('isM','isSR_isM')
 	totBkgMerged = 0.
 	for proc in bkgProcList:
 		try: 
-			bkghistsmerged[proc+'isL'+tagStr] = RFile1.Get(histPrefixE+'__'+proc).Clone()
-			bkghistsmerged[proc+'isL'+tagStr].Add(RFile1.Get(histPrefixM+'__'+proc))
+			bkghistsmerged[proc+'isL'+tagStr] = RFile1.Get(histPrefixE2016+'__'+proc).Clone() + RFile3.Get(histPrefixE2017+'__'+proc).Clone() + RFile5.Get(histPrefixE2018+'__'+proc).Clone()
+			bkghistsmerged[proc+'isL'+tagStr].Add(RFile1.Get(histPrefixM2016+'__'+proc).Clone())
+			bkghistsmerged[proc+'isL'+tagStr].Add(RFile3.Get(histPrefixM2017+'__'+proc).Clone())
+                        bkghistsmerged[proc+'isL'+tagStr].Add(RFile5.Get(histPrefixM2018+'__'+proc).Clone())
+                        
 			totBkgMerged += bkghistsmerged[proc+'isL'+tagStr].Integral()
-		except:pass
-	hDatamerged = RFile1.Get(histPrefixE+'__DATA').Clone()+RFile3.Get(histPrefixE2017+'__DATA').Clone()
-	hsig1merged = RFile1.Get(histPrefixE+'__sig').Clone(histPrefixE+'__sig1merged')+RFile3.Get(histPrefixE2017+'__sig').Clone(histPrefixE2017+'__sig1merged')
-	hsig2merged = RFile2.Get(histPrefixE+'__sig').Clone(histPrefixE+'__sig2merged')+RFile4.Get(histPrefixE2017+'__sig').Clone(histPrefixE2017+'__sig2merged')
-	hDatamerged.Add(RFile1.Get(histPrefixM+'__DATA').Clone())#+RFile3.Get(histPrefixM2017+'_DATA').Clone())
-	hsig1merged.Add(RFile1.Get(histPrefixM+'__sig').Clone())#+RFile3.Get(histPrefixM2017+'__sig').Clone())
-	hsig2merged.Add(RFile2.Get(histPrefixM+'__sig').Clone())#+RFile4.Get(histPrefixM2017+'__sig').Clone())
+		except:
+			print("Failed try on line 723")
+			pass
+	hDatamerged = RFile1.Get(histPrefixE2016+'__'+datalabel).Clone()+RFile3.Get(histPrefixE2017+'__'+datalabel).Clone()+RFile5.Get(histPrefixE2018+'__'+datalabel).Clone()
+	hDatamerged.Add(RFile1.Get(histPrefixM2016+'__'+datalabel).Clone())
+	hDatamerged.Add(RFile3.Get(histPrefixM2017+'__'+datalabel).Clone())
+        hDatamerged.Add(RFile5.Get(histPrefixM2018+'__'+datalabel).Clone())
+
+	hsig1merged = RFile1.Get(histPrefixE2016+'__'+siglabel).Clone(histPrefixE2016+'__sig1merged')+RFile3.Get(histPrefixE2017+'__'+siglabel).Clone(histPrefixE2017+'__sig1merged')+RFile5.Get(histPrefixE2018+'__'+siglabel).Clone(histPrefixE2018+'__sig1merged')
+	hsig1merged.Add(RFile1.Get(histPrefixM2016+'__'+siglabel).Clone())
+	hsig1merged.Add(RFile3.Get(histPrefixM2017+'__'+siglabel).Clone())
+        hsig1merged.Add(RFile5.Get(histPrefixM2018+'__'+siglabel).Clone())
+        if isCategorized:
+                hsig2merged = RFile1.Get(histPrefixE2016+'__'+siglabel.replace(sig1,sig2)).Clone(histPrefixE2016+'__sig2merged')+RFile3.Get(histPrefixE2017+'__'+siglabel.replace(sig1,sig2)).Clone(histPrefixE2017+'__sig2merged')+RFile5.Get(histPrefixE2018+'__'+siglabel.replace(sig1,sig2)).Clone(histPrefixE2018+'__sig2merged')
+                hsig2merged.Add(RFile1.Get(histPrefixM2016+'__'+siglabel.replace(sig1,sig2)).Clone())
+                hsig2merged.Add(RFile3.Get(histPrefixM2017+'__'+siglabel.replace(sig1,sig2)).Clone())
+                hsig2merged.Add(RFile5.Get(histPrefixM2018+'__'+siglabel.replace(sig1,sig2)).Clone())
+        else:        
+                hsig2merged = RFile2.Get(histPrefixE2016+'__'+siglabel).Clone(histPrefixE2016+'__sig2merged')+RFile4.Get(histPrefixE2017+'__'+siglabel).Clone(histPrefixE2017+'__sig2merged')+RFile6.Get(histPrefixE2018+'__'+siglabel).Clone(histPrefixE2018+'__sig2merged')
+                hsig2merged.Add(RFile2.Get(histPrefixM2016+'__'+siglabel).Clone())
+                hsig2merged.Add(RFile4.Get(histPrefixM2017+'__'+siglabel).Clone())
+                hsig2merged.Add(RFile6.Get(histPrefixM2018+'__'+siglabel).Clone())
+
 	hsig1merged.Scale(xsec[sig1])
 	hsig2merged.Scale(xsec[sig2])
+        if len(isRebinned) > 0: 
+                hsig1merged.Scale(10.0) # 100fb input
+                hsig2merged.Scale(10.0)                
+
         histrange = [hDatamerged.GetBinLowEdge(1),hDatamerged.GetBinLowEdge(hDatamerged.GetNbinsX()+1)]
-	gaeDatamerged = TGraphAsymmErrors(hDatamerged.Clone(hDatamerged.GetName().replace("DATA","gaeDATA")))
+	gaeDatamerged = TGraphAsymmErrors(hDatamerged.Clone(hDatamerged.GetName().replace(datalabel,"gaeDATA")))
 	if doNormByBinWidth:
-		poissonNormByBinWidth(gaeDatamerged,hDatamerged)
+		poissonNormByBinWidth(gaeDatamerged,hDatamerged,perNGeV)
 		for proc in bkgProcList:
-			try: normByBinWidth(bkghistsmerged[proc+'isL'+tagStr])
+			try: normByBinWidth(bkghistsmerged[proc+'isL'+tagStr],perNGeV)
 			except: pass
-		normByBinWidth(hsig1merged)
-		normByBinWidth(hsig2merged)
-		normByBinWidth(hDatamerged)
+		normByBinWidth(hsig1merged,perNGeV)
+		normByBinWidth(hsig2merged,perNGeV)
+		normByBinWidth(hDatamerged,perNGeV)
 	else: poissonErrors(gaeDatamerged)
 	# Yes, there are easier ways using the TH1's but
 	# it would be rough to swap objects lower down	
@@ -711,7 +869,7 @@ for tag in tagList:
 
 	if doAllSys:
 		for syst in systematicList:
-			for ud in ['minus','plus']:
+			for ud in shiftlist:
 				for proc in bkgProcList:
 					try: 
 						systHists[proc+'isL'+tagStr+syst+ud] = systHists[proc+'isE_'+tagStr+syst+ud].Clone()
@@ -733,8 +891,8 @@ for tag in tagList:
 			for syst in systematicList:
 				for proc in bkgProcList:
 					try:
-						errorPlus = systHists[proc+'isL'+tagStr+syst+'plus'].GetBinContent(ibin)-bkghistsmerged[proc+'isL'+tagStr].GetBinContent(ibin)
-						errorMinus = bkghistsmerged[proc+'isL'+tagStr].GetBinContent(ibin)-systHists[proc+'isL'+tagStr+syst+'minus'].GetBinContent(ibin)
+						errorPlus = systHists[proc+'isL'+tagStr+syst+shiftlist[0]].GetBinContent(ibin)-bkghistsmerged[proc+'isL'+tagStr].GetBinContent(ibin)
+						errorMinus = bkghistsmerged[proc+'isL'+tagStr].GetBinContent(ibin)-systHists[proc+'isL'+tagStr+syst+shiftlist[1]].GetBinContent(ibin)
 						if errorPlus > 0: errorUp += errorPlus**2
 						else: errorDn += errorPlus**2
 						if errorMinus > 0: errorDn += errorMinus**2
@@ -829,8 +987,8 @@ for tag in tagList:
 	if iPlot=='PrunedHNm1': gaeDatamerged.SetMaximum(1.7*max(gaeDatamerged.GetMaximum(),bkgHTmerged.GetMaximum()))
 	gaeDatamerged.SetMinimum(0.015)
 	if doNormByBinWidth:
-		if iPlot == 'DnnTprime': gaeDatamerged.GetYaxis().SetTitle("< Events / 0.01 >")
-		else: gaeDatamerged.GetYaxis().SetTitle("< Events / 1 GeV >")
+		if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): gaeDatamerged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+		else: gaeDatamerged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
 	else: gaeDatamerged.GetYaxis().SetTitle("Events / bin")
 	formatUpperHist(gaeDatamerged,hData)
 	uPad.cd()
@@ -843,8 +1001,8 @@ for tag in tagList:
 	if blind: 
 		hsig1merged.SetMinimum(0.015)
 		if doNormByBinWidth:
-			if iPlot == 'DnnTprime': hsig1merged.GetYaxis().SetTitle("< Events / 0.01 >")
-			else: hsig1merged.GetYaxis().SetTitle("< Events / 1 GeV >")
+			if iPlot == 'DnnTprime' or (iPlot == 'HTNtag' and perNGeV < 10): hsig1merged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" >")
+			else: hsig1merged.GetYaxis().SetTitle("< Events / "+str(perNGeV)+" GeV >")
 		else: hsig1merged.GetYaxis().SetTitle("Events / bin")
 		hsig1merged.SetMaximum(1.5*hDatamerged.GetMaximum())
 		if iPlot=='Tau21Nm1': hsig1merged.SetMaximum(1.5*hDatamerged.GetMaximum())
@@ -945,7 +1103,7 @@ for tag in tagList:
 	prelimTex.SetTextSize(0.05)
 	if blind: prelimTex.SetTextSize(0.05)
 	prelimTex.SetLineWidth(2)
-	prelimTex.DrawLatex(0.95,0.94,str(lumi)+" fb^{-1} (13 TeV)")
+	prelimTex.DrawLatex(0.95,0.94,str(lumi+lumi2017+lumi2018)+" fb^{-1} (13 TeV)")
 	
 	prelimTex2=TLatex()
 	prelimTex2.SetNDC()
@@ -1064,9 +1222,9 @@ for tag in tagList:
 		pullmerged.Draw("HIST")
 
 	#c1merged.Write()
-	savePrefixmerged = templateDir+templateDir.split('/')[-2]+'Combineplots/'
+	savePrefixmerged = templateDir2016+templateDir2016.split('/')[-2]+'Combineplots/'
 	if not os.path.exists(savePrefixmerged): os.system('mkdir '+savePrefixmerged)
-	savePrefixmerged+=histPrefixE.replace('isE','isL')+isRebinned.replace('_rebinned_stat1p1','')+saveKey
+	savePrefixmerged+=histPrefixE2016.replace('isE','isL')+isRebinned.replace('_rebinned_stat1p1','')+saveKey
 	if doRealPull: savePrefixmerged+='_pull'
 	if doNormByBinWidth: savePrefixmerged+='_NBBW'
 	if drawNormalized: savePrefix+='_norm'
@@ -1091,9 +1249,12 @@ for tag in tagList:
 		except: pass
 
 RFile1.Close()
-RFile2.Close()
 RFile3.Close()
-RFile4.Close()
+RFile5.Close()
+if not isCategorized:
+        RFile2.Close()
+        RFile4.Close()
+        RFile6.Close()
 print("--- %s minutes ---" % (round(time.time() - start_time, 2)/60))
 
 
