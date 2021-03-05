@@ -148,11 +148,11 @@ print 'ROOT file16:',tfile16.GetName()
 print 'ROOT file17:',tfile17.GetName()
 print 'ROOT file18:',tfile18.GetName()
 
+## Datahists should be safe...there should be one for all channels for all years
 datahists = [k.GetName() for k in tfile17.GetListOfKeys() if '__'+dataName in k.GetName()]
-#print datahists
 channels = [hist[hist.find('fb_')+3:hist.find('__')] for hist in datahists if 'isL_' not in hist and '01W' not in hist and '2pW' not in hist and 'notVbH' not in hist and 'notVbZ' not in hist]
-#channels = ['isSR_isE_notV01T1H_DeepAK8','isSR_isM_notV01T1H_DeepAK8','isSR_isE_taggedtHbW_DeepAK8','isSR_isM_taggedtHbW_DeepAK8']
 
+## Allhists is trickier -- some uncertainties are only in some years and some background processes are only in some years
 allhists17 = {chn:[hist.GetName() for hist in tfile17.GetListOfKeys() if chn in hist.GetName()] for chn in channels}
 allhists16 = {chn:[(hist.GetName()).replace(lumi16,lumi17) for hist in tfile16.GetListOfKeys() if chn in hist.GetName()] for chn in channels}
 allhists18 = {chn:[(hist.GetName()).replace(lumi18,lumi17) for hist in tfile18.GetListOfKeys() if chn in hist.GetName()] for chn in channels}
@@ -172,12 +172,13 @@ for hist in datahists:
 	channel = hist[hist.find('fb_')+3:hist.find('__')]
 	DataHists[channel] = tfile17.Get(hist).Clone()
         DataHists[channel].Add(tfile16.Get(hist.replace(lumi17,lumi16)))
-        DataHists[channel].Add(tfile18.Get(hist.replace(lumi17,lumi18)))
-	#DataHists[channel].Rebin(20)
+        DataHists[channel].Add(tfile18.Get(hist.replace(lumi17,lumi18)))        
+        
 
-#print datahists
-
+## Background hists will at least check everything. Then we see if any are missing and flag them
+## These missing hists flags would then apply to all the uncerts for that process...
 totBkgHists = {}
+badhistlist = {}
 for hist in datahists:
 	channel = hist[hist.find('fb_')+3:hist.find('__')]
 	totBkgHists[channel]=tfile17.Get(hist.replace('__'+dataName,'__'+bkgProcList[0])).Clone()
@@ -188,23 +189,25 @@ for hist in datahists:
 		try: 
                         totBkgHists[channel].Add(tfile17.Get(hist.replace('__'+dataName,'__'+proc)))
                 except:
-                        if 'qcd' not in proc: print "Missing",proc,"for category:",hist,"in 2017: SKIPPING"
+                        badhistlist.setdefault(proc+'17',[]).append(hist.replace('__'+dataName,'__'+proc))
                         pass
                 try:
                         totBkgHists[channel].Add(tfile16.Get(hist.replace(lumi17,lumi16).replace('__'+dataName,'__'+proc)))
                 except:
-                        if 'qcd' not in proc: print "Missing",proc,"for category:",hist,"in 2016: SKIPPING"
+                        badhistlist.setdefault(proc+'16',[]).append(hist.replace('__'+dataName,'__'+proc))
                         pass
                 try:
                         totBkgHists[channel].Add(tfile18.Get(hist.replace(lumi17,lumi18).replace('__'+dataName,'__'+proc)))
-		except: 			
-                        if 'qcd' not in proc: print "Missing",proc,"for category:",hist,"in 2018: SKIPPING"
+		except: 		
+                        badhistlist.setdefault(proc+'18',[]).append(hist.replace('__'+dataName,'__'+proc))
                         pass
-	#totBkgHists[channel].Rebin(20)
+
+print 'Processes with missing histograms:',badhistlist.keys()
+#for key in badhistlist.keys():
+#        print '\t Bad hists for',key,':',badhistlist[key]
 
 ## Not currently using this -- it's for rebinning on signal stats.
 ##SigHists = {}
-
 # for hist in datahists:
 # 	channel = hist[hist.find('fb_')+3:hist.find('__')]
 # 	if not rebinCombine: SigHists[channel]=tfile.Get(hist.replace('__'+dataName,'__sig')).Clone()
@@ -431,6 +434,7 @@ drop = ['__Jeff','__Jmis']
 shortyears = ['16','17','18']
 
 for rfile in rfiles: 
+        #if 'W0p5' not in rfile: continue
 	print "REBINNING FILES:"
         print '\t',rfile
         print '\t',rfile.replace(lumi17,lumi16).replace(inputfolder17,inputfolder16)
@@ -444,84 +448,70 @@ for rfile in rfiles:
 	tfiles18[iRfile] = TFile(rfile.replace(lumi17,lumi18).replace(inputfolder17,inputfolder18))	
 	if not rebin4chi2: 
 		if not FullMu: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
-		else: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
-	else: 
-		if not FullMu: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
+                else: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
+        else: 
+                if not FullMu: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
 		else: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
-
-                
-
-	signame = rfile.split('/')[-1].split('_')[2]
+                        
+                        
+        signame = rfile.split('/')[-1].split('_')[2]
 
 	if not rebinCombine:
 		print 'FOUND SIGNAME = ',signame
 		if 'TTM' not in signame and 'BBM' not in signame: print 'DIDNT STORE SIGNAME: ',signame	
-
-	print "PROGRESS:"
+                
+        print "PROGRESS:"
 	for chn in channels:
 		print "         ",chn
 		rebinnedHists = {}
 		#Rebinning histograms
 		for hist in allhists[chn]:
-
+                        
                         if any(item in hist for item in drop): continue
-
+                        
+                        # pull out the Discrim_stuff_stuff__proc part of the name
+                        proc = hist.split('__')[1]
+                        basename = hist.split('__')[0]+'__'+proc
+                        do = {}
+                        if proc+'16' in badhistlist.keys(): do['16'] = bool(basename not in badhistlist[proc+'16'])
+                        else: do['16'] = True
+                        if proc+'17' in badhistlist.keys(): do['17'] = bool(basename not in badhistlist[proc+'17'])
+                        else: do['17'] = True
+                        if proc+'18' in badhistlist.keys(): do['18'] = bool(basename not in badhistlist[proc+'18'])                        
+                        else: do['18'] = True
+                        
                         if rebinCombine and '__'+sigName in hist: 
                                 signame = hist.split('__')[1]
                                 if sigName not in signame: print "DIDNT GET SIGNAME",signame
-
+                                
                         if 'W0p5' in rfile or 'kinematics' in folder:
 				yieldHistName = hist
 				if not rebinCombine: 
-					yieldHistName = hist.replace('_sig','_'+rfile.split('_')[-5]) ### ASSUMING BR IS IN FILE NAME
+                                        yieldHistName = hist.replace('_sig','_'+rfile.split('_')[-5]) ### ASSUMING BR IS IN FILE NAME
 					if 'kinematics' in folder: yieldHistName = hist.replace('_sig','_'+rfile.split('_')[-2])
-                        
+                                        
                         if any(item in hist for item in uncorrelated):
                                 ## uncorrelated nuisances: add each year to nominal from other years. Try to RENAME HERE with .Clone
                                 for syst in uncorrelated:
-                                        if syst in hist: 
-                                                try: rebinnedHists[hist+'16'] = tfiles17[iRfile].Get(hist.replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2016').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                try: rebinnedHists[hist+'16'].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi16)+'dummy',xbins[chn]))
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                try: rebinnedHists[hist+'16'].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')+'dummy',xbins[chn]))
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
+                                        if syst not in hist: continue
                                                 
-                                                try: rebinnedHists[hist+'17'] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2017').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                try: rebinnedHists[hist+'17'].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')+'dummy',xbins[chn]))
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                try: rebinnedHists[hist+'17'].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')+'dummy',xbins[chn]))
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                
-                                                try: rebinnedHists[hist+'18'] = tfiles17[iRfile].Get(hist.replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2018').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                try: rebinnedHists[hist+'18'].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')+'dummy',xbins[chn]))
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                try: rebinnedHists[hist+'18'].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi18)+'dummy',xbins[chn]))
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
+                                        if do['16']:
+                                                rebinnedHists[hist+'16'] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2016').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
+                                                if do['17']: rebinnedHists[hist+'16'].Add(tfiles17[iRfile].Get(hist.replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                if do['18']: rebinnedHists[hist+'16'].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
 
-                                for year in shortyears: 
-                                        
-                                        try:
+                                        if do['17']:
+                                                rebinnedHists[hist+'17'] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2017').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
+                                                if do['16']: rebinnedHists[hist+'17'].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                if do['18']: rebinnedHists[hist+'17'].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                
+                                        if do['18']: 
+                                                rebinnedHists[hist+'18'] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2018').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
+                                                if do['16']: rebinnedHists[hist+'18'].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')+'dummy',xbins[chn]))
+                                                if do['17']: rebinnedHists[hist+'18'].Add(tfiles17[iRfile].Get(hist.replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                
+                                        for year in shortyears: 
+                                                if not do[year]: continue
                                                 rebinnedHists[hist+year].SetDirectory(0)
 
                                                 # scale Combine signals down to expected xsec for injection tests
@@ -530,133 +520,106 @@ for rfile in rfiles:
                                                 if 'W0p5' in rfile or 'kinematics' in folder:
                                                         yieldsAll[yieldHistName.replace(upTag,year+upTag).replace(downTag,year+downTag)] = rebinnedHists[hist+year].Integral()
 
-                                                        if rebinCombine and '__'+sigName in hist:
-                                                                for iBin in range(1,rebinnedHists[hist+year].GetNbinsX()+1):   
-                                                                        if rebinnedHists[hist+year].GetBinContent(iBin) == 0:
-                                                                                rebinnedHists[hist+year].SetBinContent(iBin,1e-6)
-                                                                                rebinnedHists[hist+year].SetBinError(iBin,math.sqrt(1e-6))
+                                                if rebinCombine and '__'+sigName in hist:
+                                                        for iBin in range(1,rebinnedHists[hist+year].GetNbinsX()+1):   
+                                                                if rebinnedHists[hist+year].GetBinContent(iBin) == 0:
+                                                                        rebinnedHists[hist+year].SetBinContent(iBin,1e-6)
+                                                                        rebinnedHists[hist+year].SetBinError(iBin,math.sqrt(1e-6))
 
                                                 rebinnedHists[hist+year].Write()
-                                        except:
-                                                if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                pass
 
 
                         else:  # NOT an uncorrelated histogram
                                 if any(item in hist for item in correlated):
                                         ## correlated nuisances: add each year to the others
                                         for syst in correlated:
-                                                if syst in hist:
-                                                        # prefire only exists in 16-17, dnnJ only in 17-18 
-                                                        try: rebinnedHists[hist] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
-                                                        except:
-                                                                if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                                pass
+                                                if syst not in hist: continue
 
-                                                        if 'dnnJ' not in hist:
-                                                                try: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                                except:
-                                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                                        pass
-                                                        else:
-                                                                try: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                                except:
-                                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                                        pass
-                                                        if 'prefire' not in hist: 
-                                                                try: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                                except:
-                                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                                        pass
-                                                        else:
-                                                                try: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                                except:
-                                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                                        pass
+                                                if do['17']:
+                                                        rebinnedHists[hist] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
+                                                        if do['16']: 
+                                                                if 'dnnJ' in hist: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                else: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                        if do['18']:
+                                                                if 'prefire' in hist: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                else: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                elif do['16']:
+                                                        if 'dnnJ' in hist: rebinnedHists[hist] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn])
+                                                        else: rebinnedHists[hist] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn])
 
+                                                        if do['18']:
+                                                                if 'prefire' in hist: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                else: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                elif do['18']:
+                                                        if 'prefire' in hist: rebinnedHists[hist] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn])
+                                                        else: rebinnedHists[hist] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn])
 
 
                                 elif any(item in hist for item in special) and 'kinematics' not in folder:
                                         ## special: we will deal with these later, for now just rebin and put into rebinnedHists
-                                        try: rebinnedHists[hist+'16'] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist+'16',xbins[chn])
+                                        try:
+                                                if do['16']: rebinnedHists[hist+'16'] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist+'16',xbins[chn])
+                                                if do['17']: rebinnedHists[hist+'17'] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist+'17',xbins[chn])
+                                                if do['18']: rebinnedHists[hist+'18'] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist+'18',xbins[chn])
                                         except:
-                                                if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                pass
-                                        try: rebinnedHists[hist+'17'] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist+'17',xbins[chn])
-                                        except:
-                                                if 'pdf' not in hist and 'qcd' not in hist: print '\t Specials: unexpected missing 2017 or 2018:',hist
-                                                pass
-                                        try: rebinnedHists[hist+'18'] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist+'18',xbins[chn])
-                                        except:
-                                                if 'pdf' not in hist and 'qcd' not in hist: print '\t Specials: unexpected missing 2017 or 2018:',hist
+                                                if 'pdf' not in hist: print '\t Specials: unexpected missing 2017 or 2018:',hist
                                                 pass
                                         if 'muR'+upTag in hist:
                                                 ## for the muRF we need a nominal histogram saved...
-                                                try: rebinnedHists[hist[:hist.find('__mu')]+'N17'] = tfiles17[iRfile].Get(hist[:hist.find('__mu')]).Rebin(len(xbins[chn])-1,hist,xbins[chn])
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                try: rebinnedHists[hist[:hist.find('__mu')]+'N16'] = tfiles16[iRfile].Get((hist[:hist.find('__mu')]).replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist,xbins[chn])
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
-                                                try: rebinnedHists[hist[:hist.find('__mu')]+'N18'] = tfiles18[iRfile].Get((hist[:hist.find('__mu')]).replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist,xbins[chn])
-                                                except:
-                                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                        pass
+                                                if do['17']: rebinnedHists[hist[:hist.find('__mu')]+'N17'] = tfiles17[iRfile].Get(hist[:hist.find('__mu')]).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N17',xbins[chn])
+                                                if do['16']: rebinnedHists[hist[:hist.find('__mu')]+'N16'] = tfiles16[iRfile].Get((hist[:hist.find('__mu')]).replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N16',xbins[chn])
+                                                if do['18']: rebinnedHists[hist[:hist.find('__mu')]+'N18'] = tfiles18[iRfile].Get((hist[:hist.find('__mu')]).replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N18',xbins[chn])
 
                                         for year in shortyears:                                                 
+                                                if not do[year]: continue
                                                 try:
                                                         rebinnedHists[hist+year].SetDirectory(0)
                                                         # scale Combine signals down to expected xsec for injection tests
                                                         if rebinCombine and '__'+sigName in hist: rebinnedHists[hist+year].Scale(100.0/1000) ## try 100fb instead...
-                                                        if 'muR'+upTag in hist:
-                                                                rebinnedHists[hist[:hist.find('__mu')]+'N'+year].SetDirectory(0)
-                                                                if rebinCombine and '__'+sigName in hist: rebinnedHists[hist[:hist.find('__mu')]+'N'+year].Scale(100.0/1000) ## try 100fb instead...
                                                 except:
-                                                        if 'pdf' not in hist and 'qcd' not in hist: print '\t Specials: unexpected missing 2017 or 2018:',hist
+                                                        if 'pdf' not in hist: print '\t Specials: unexpected missing 2017 or 2018:',hist
                                                         pass
+                                                if 'muR'+upTag in hist:
+                                                        rebinnedHists[hist[:hist.find('__mu')]+'N'+year].SetDirectory(0)
+                                                        if rebinCombine and '__'+sigName in hist: rebinnedHists[hist[:hist.find('__mu')]+'N'+year].Scale(100.0/1000) ## try 100fb instead...
                                 else:
                                         ## else: not a nuisance, add each year to the others
-                                        try: rebinnedHists[hist] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
-                                        except:
-                                                if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                pass
-                                        try: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist,xbins[chn]))
-                                        except:
-                                                if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                pass
-                                        try: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist,xbins[chn]))                    
-                                        except:
-                                                if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                                pass            
+                                        if do['17']: 
+                                                rebinnedHists[hist] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
+                                                if do['16']: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist,xbins[chn]))
+                                                if do['18']: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist,xbins[chn]))
+                                        elif do['16']:
+                                                rebinnedHists[hist] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist,xbins[chn])
+                                                if do['18']: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist,xbins[chn]))
+                                        elif do['18']: rebinnedHists[hist] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist,xbins[chn])
+                                                
                                         
                                 ## Done with these guys -- they are SD(0) and .Scale'd above
                                 if any(item in hist for item in special): continue
 
-                                try:
-                                        rebinnedHists[hist].SetDirectory(0)                                
+                                if hist not in rebinnedHists.keys():
+                                        print 'No histogram to write for',hist,'in',chn
+                                        continue
+                                        
+                                rebinnedHists[hist].SetDirectory(0)                                
 
-                                        # scale Combine signals down to expected xsec for injection tests
-                                        if rebinCombine and '__'+sigName in hist: rebinnedHists[hist].Scale(100.0/1000) ## try 100fb instead...
+                                # scale Combine signals down to expected xsec for injection tests
+                                if rebinCombine and '__'+sigName in hist: rebinnedHists[hist].Scale(100.0/1000) ## try 100fb instead...
+                                
+                                if 'W0p5' in rfile or 'kinematics' in folder:
+                                        yieldsAll[yieldHistName] = rebinnedHists[hist].Integral()
+                                        yieldsErrsAll[yieldHistName] = 0.
+                                        for ibin in range(1,rebinnedHists[hist].GetXaxis().GetNbins()+1):
+                                                yieldsErrsAll[yieldHistName] += rebinnedHists[hist].GetBinError(ibin)**2
+                                        yieldsErrsAll[yieldHistName] = math.sqrt(yieldsErrsAll[yieldHistName])
 
-                                        if 'W0p5' in rfile or 'kinematics' in folder:
-                                                yieldsAll[yieldHistName] = rebinnedHists[hist].Integral()
-                                                yieldsErrsAll[yieldHistName] = 0.
-                                                for ibin in range(1,rebinnedHists[hist].GetXaxis().GetNbins()+1):
-                                                        yieldsErrsAll[yieldHistName] += rebinnedHists[hist].GetBinError(ibin)**2
-                                                yieldsErrsAll[yieldHistName] = math.sqrt(yieldsErrsAll[yieldHistName])
+                                if rebinCombine and '__'+sigName in hist:
+                                        for iBin in range(1,rebinnedHists[hist].GetNbinsX()+1):   
+                                                if rebinnedHists[hist].GetBinContent(iBin) == 0:
+                                                        rebinnedHists[hist].SetBinContent(iBin,1e-6)
+                                                        rebinnedHists[hist].SetBinError(iBin,math.sqrt(1e-6))
 
-                                        if rebinCombine and '__'+sigName in hist:
-                                                for iBin in range(1,rebinnedHists[hist].GetNbinsX()+1):   
-                                                        if rebinnedHists[hist].GetBinContent(iBin) == 0:
-                                                                rebinnedHists[hist].SetBinContent(iBin,1e-6)
-                                                                rebinnedHists[hist].SetBinError(iBin,math.sqrt(1e-6))
-
-                                        rebinnedHists[hist].Write()
-                                except:
-                                        if 'qcd' not in hist: print 'Unexpected missing hist:',hist
-                                        pass
+                                rebinnedHists[hist].Write()
 		
                 ## DONE looping over all hists here... 
                 ## Uncorrelated uncerts have been added/renamed/unzeroed/written
@@ -678,6 +641,17 @@ for rfile in rfiles:
                 muRUphists = muRUphists17 + mulist16not17 + mulist18not1617
                 #muRUphists = [k.GetName() for k in tfiles17[iRfile].GetListOfKeys() if 'muR'+upTag in k.GetName() and chn in k.GetName()]
 		for hist in muRUphists:
+                        # pull out the Discrim_stuff_stuff__proc part of the name
+                        proc = hist.split('__')[1]
+                        basename = hist.split('__')[0]+'__'+proc
+                        do = {}
+                        if proc+'16' in badhistlist.keys(): do['16'] = bool(basename not in badhistlist[proc+'16'])
+                        else: do['16'] = True
+                        if proc+'17' in badhistlist.keys(): do['17'] = bool(basename not in badhistlist[proc+'17'])
+                        else: do['17'] = True
+                        if proc+'18' in badhistlist.keys(): do['18'] = bool(basename not in badhistlist[proc+'18'])                        
+                        else: do['18'] = True
+
 			newMuRFNameBase = 'muRFcorrdNew'
 			if 'qcd__' in hist: newMuRFName = newMuRFNameBase+'QCD'
 			if 'ewk__' in hist: newMuRFName = newMuRFNameBase+'Ewk'
@@ -686,82 +660,72 @@ for rfile in rfiles:
 
                         muRFcorrdNewUpHists = {}
                         muRFcorrdNewDnHists = {}
-                        qcd = {'16':True,'17':True,'18':True}
                         for year in shortyears:
-                                try:
-                                        muRFcorrdNewUpHists[year] = rebinnedHists[hist+year].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+'20'+year+upTag))
-                                        muRFcorrdNewDnHists[year] = rebinnedHists[hist+year].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+'20'+year+downTag))
-                                        histList = [
-                                                rebinnedHists[hist[:hist.find('__mu')]+'N'+year], #nominal 
-                                                rebinnedHists[hist+year], #renormWeights[5]
-                                                rebinnedHists[(hist+year).replace('muR'+upTag,'muR'+downTag)], #renormWeights[3]
-                                                rebinnedHists[(hist+year).replace('muR'+upTag,'muF'+upTag)], #renormWeights[1]
-                                                rebinnedHists[(hist+year).replace('muR'+upTag,'muF'+downTag)], #renormWeights[0]
-                                                rebinnedHists[(hist+year).replace('muR'+upTag,'muRFcorrd'+upTag)], #renormWeights[4]
-                                                rebinnedHists[(hist+year).replace('muR'+upTag,'muRFcorrd'+downTag)] #renormWeights[2]
-                                        ]
-                                        for ibin in range(1,histList[0].GetNbinsX()+1):
-                                                weightList = [histList[ind].GetBinContent(ibin) for ind in range(len(histList))]
-                                                indCorrdUp = weightList.index(max(weightList))
-                                                indCorrdDn = weightList.index(min(weightList))
+                                if not do[year]: continue
+
+                                muRFcorrdNewUpHists[year] = rebinnedHists[hist+year].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+'20'+year+upTag))
+                                muRFcorrdNewDnHists[year] = rebinnedHists[hist+year].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+'20'+year+downTag))
+                                histList = [
+                                        rebinnedHists[hist[:hist.find('__mu')]+'N'+year], #nominal 
+                                        rebinnedHists[hist+year], #renormWeights[5]
+                                        rebinnedHists[(hist+year).replace('muR'+upTag,'muR'+downTag)], #renormWeights[3]
+                                        rebinnedHists[(hist+year).replace('muR'+upTag,'muF'+upTag)], #renormWeights[1]
+                                        rebinnedHists[(hist+year).replace('muR'+upTag,'muF'+downTag)], #renormWeights[0]
+                                        rebinnedHists[(hist+year).replace('muR'+upTag,'muRFcorrd'+upTag)], #renormWeights[4]
+                                        rebinnedHists[(hist+year).replace('muR'+upTag,'muRFcorrd'+downTag)] #renormWeights[2]
+                                ]
+                                for ibin in range(1,histList[0].GetNbinsX()+1):
+                                        weightList = [histList[ind].GetBinContent(ibin) for ind in range(len(histList))]
+                                        indCorrdUp = weightList.index(max(weightList))
+                                        indCorrdDn = weightList.index(min(weightList))
                                                 
-                                                muRFcorrdNewUpHists[year].SetBinContent(ibin,histList[indCorrdUp].GetBinContent(ibin))
-                                                muRFcorrdNewDnHists[year].SetBinContent(ibin,histList[indCorrdDn].GetBinContent(ibin))
+                                        muRFcorrdNewUpHists[year].SetBinContent(ibin,histList[indCorrdUp].GetBinContent(ibin))
+                                        muRFcorrdNewDnHists[year].SetBinContent(ibin,histList[indCorrdDn].GetBinContent(ibin))
                                                 
-                                                muRFcorrdNewUpHists[year].SetBinError(ibin,histList[indCorrdUp].GetBinError(ibin))
-                                                muRFcorrdNewDnHists[year].SetBinError(ibin,histList[indCorrdDn].GetBinError(ibin))
+                                        muRFcorrdNewUpHists[year].SetBinError(ibin,histList[indCorrdUp].GetBinError(ibin))
+                                        muRFcorrdNewDnHists[year].SetBinError(ibin,histList[indCorrdDn].GetBinError(ibin))
 
-                                        ## Special things for signal
-                                        if normalizeRENORM and ('sig__mu' in hist or '__'+sigName in hist):
+                                ## Special things for signal
+                                if normalizeRENORM and ('sig__mu' in hist or '__'+sigName in hist):
 
-                                                if rebinCombine and '__'+sigName in hist: 
-                                                        signame = hist.split('__')[1]
-                                                        if sigName not in signame: print "DIDNT GET SIGNAME",signame
+                                        if rebinCombine and '__'+sigName in hist: 
+                                                signame = hist.split('__')[1]
+                                                if sigName not in signame: print "DIDNT GET SIGNAME",signame
 
-                                                scalefactorUp = muSFsUp[signame][int(year)%16]
-                                                scalefactorDn = muSFsDn[signame][int(year)%16]
-                                                muRFcorrdNewUpHists[year].Scale(scalefactorUp) #drop down .7
-                                                muRFcorrdNewDnHists[year].Scale(scalefactorDn) #raise up 1.3
+                                        scalefactorUp = muSFsUp[signame][int(year)%16]
+                                        scalefactorDn = muSFsDn[signame][int(year)%16]
+                                        muRFcorrdNewUpHists[year].Scale(scalefactorUp) #drop down .7
+                                        muRFcorrdNewDnHists[year].Scale(scalefactorDn) #raise up 1.3
 
-                                                if rebinCombine:
-                                                        for iBin in range(1,muRFcorrdNewUpHists[year].GetNbinsX()+1):
-                                                                if muRFcorrdNewUpHists[year].GetBinContent(iBin) == 0:            ##Check if bin content is zero
-                                                                        muRFcorrdNewUpHists[year].SetBinContent(iBin,1e-6) ##Setting bin content to nonzero value
-                                                                        muRFcorrdNewUpHists[year].SetBinError(iBin,math.sqrt(1e-6))
-                                                                if muRFcorrdNewDnHists[year].GetBinContent(iBin) == 0:            ##Check if bin content is zero
-                                                                        muRFcorrdNewDnHists[year].SetBinContent(iBin,1e-6) ##Setting bin content to nonzero value
-                                                                        muRFcorrdNewDnHists[year].SetBinError(iBin,math.sqrt(1e-6))
+                                        if rebinCombine:
+                                                for iBin in range(1,muRFcorrdNewUpHists[year].GetNbinsX()+1):
+                                                        if muRFcorrdNewUpHists[year].GetBinContent(iBin) == 0:            ##Check if bin content is zero
+                                                                muRFcorrdNewUpHists[year].SetBinContent(iBin,1e-6) ##Setting bin content to nonzero value
+                                                                muRFcorrdNewUpHists[year].SetBinError(iBin,math.sqrt(1e-6))
+                                                        if muRFcorrdNewDnHists[year].GetBinContent(iBin) == 0:            ##Check if bin content is zero
+                                                                muRFcorrdNewDnHists[year].SetBinContent(iBin,1e-6) ##Setting bin content to nonzero value
+                                                                muRFcorrdNewDnHists[year].SetBinError(iBin,math.sqrt(1e-6))
 
-                                        ## Special things for background
-                                        if ('sig__mu' not in hist and '__'+sigName not in hist and normalizeRENORM and not FullMu):
-                                                renormNomHist = histList[0]
-                                                muRFcorrdNewUpHists[year].Scale(renormNomHist.Integral()/muRFcorrdNewUpHists[year].Integral())
-                                                muRFcorrdNewDnHists[year].Scale(renormNomHist.Integral()/muRFcorrdNewDnHists[year].Integral())
-                                except:
-                                        if 'qcd' not in hist: print 'MuRF construction broke for something not QCD'
-                                        else: qcd[year] = False
-                                        pass
+                                ## Special things for background
+                                if ('sig__mu' not in hist and '__'+sigName not in hist and normalizeRENORM and not FullMu):
+                                        renormNomHist = histList[0]
+                                        muRFcorrdNewUpHists[year].Scale(renormNomHist.Integral()/muRFcorrdNewUpHists[year].Integral())
+                                        muRFcorrdNewDnHists[year].Scale(renormNomHist.Integral()/muRFcorrdNewDnHists[year].Integral())
 
-                        if 'qcd' in hist:
-                                # if we get here, at least 1 year had it....
-                                lowqcdyear = '16'
-                                if not qcd['16']:
-                                        if qcd['17']: lowqcdyear = '17'
-                                        else: lowqcdyear = '18'
 
-                                muRFcorrdNewUpHist = muRFcorrdNewUpHists[lowqcdyear].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+upTag))
-                                if lowqcdyear == '17' and qcd['18']: muRFcorrdNewUpHist.Add(muRFcorrdNewUpHists[str(int(lowqcdyear)+1)]) #if 17, add 18
-                                if lowqcdyear == '16':
-                                        if qcd['17']: muRFcorrdNewUpHist.Add(muRFcorrdNewUpHists[str(int(lowqcdyear)+1)]) #if 16, add 17
-                                        if qcd['18']: muRFcorrdNewUpHist.Add(muRFcorrdNewUpHists[str(int(lowqcdyear)+2)]) #if 16, add 18
-
-                        else:
-                                muRFcorrdNewUpHist = muRFcorrdNewUpHists['16'].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+upTag))
-                                muRFcorrdNewUpHist.Add(muRFcorrdNewUpHists['17'])
-                                muRFcorrdNewUpHist.Add(muRFcorrdNewUpHists['18'])
-                                muRFcorrdNewDnHist = muRFcorrdNewDnHists['16'].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+downTag))
-                                muRFcorrdNewDnHist.Add(muRFcorrdNewDnHists['17'])
-                                muRFcorrdNewDnHist.Add(muRFcorrdNewDnHists['18'])
+                        lowyear = min([item for item in do.keys() if do[item] == True])
+                        muRFcorrdNewUpHist = muRFcorrdNewUpHists[lowyear].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+upTag))
+                        muRFcorrdNewDnHist = muRFcorrdNewDnHists[lowyear].Clone(hist.replace(lumi17,lumi).replace('muR'+upTag,newMuRFName+downTag))
+                        if lowyear == '17' and do['18']: 
+                                muRFcorrdNewUpHist.Add(muRFcorrdNewUpHists[str(int(lowyear)+1)]) #if 17, add 18
+                                muRFcorrdNewDnHist.Add(muRFcorrdNewDnHists[str(int(lowyear)+1)]) #if 17, add 18
+                        if lowyear == '16':
+                                if do['17']: 
+                                        muRFcorrdNewUpHist.Add(muRFcorrdNewUpHists[str(int(lowyear)+1)]) #if 16, add 17
+                                        muRFcorrdNewDnHist.Add(muRFcorrdNewDnHists[str(int(lowyear)+1)]) #if 16, add 17
+                                if do['18']: 
+                                        muRFcorrdNewUpHist.Add(muRFcorrdNewUpHists[str(int(lowyear)+2)]) #if 16, add 18
+                                        muRFcorrdNewDnHist.Add(muRFcorrdNewDnHists[str(int(lowyear)+2)]) #if 16, add 18
 
 			muRFcorrdNewUpHist.Write()
 			muRFcorrdNewDnHist.Write()
@@ -785,124 +749,126 @@ for rfile in rfiles:
 		#pdfUphists = [k.GetName() for k in tfiles17[iRfile].GetListOfKeys() if 'pdf0' in k.GetName() and chn in k.GetName()]
 
 		for hist in pdfUphists:
+                        # pull out the Discrim_stuff_stuff__proc part of the name
+                        proc = hist.split('__')[1]
+                        basename = hist.split('__')[0]+'__'+proc
+                        do = {}
+                        if proc+'16' in badhistlist.keys(): do['16'] = bool(basename not in badhistlist[proc+'16'])
+                        else: do['16'] = True
+                        if proc+'17' in badhistlist.keys(): do['17'] = bool(basename not in badhistlist[proc+'17'])
+                        else: do['17'] = True
+                        if proc+'18' in badhistlist.keys(): do['18'] = bool(basename not in badhistlist[proc+'18'])                        
+                        else: do['18'] = True
 
                         pdfNewUpHists = {}
                         pdfNewDnHists = {}
-                        if 'qcd' in hist:
-                                qcd = {'16':True,'17':True,'18':True}
-                                try: centralHist = rebinnedHists[hist.replace('__pdf0','')+'N16']
-                                except: qcd['16'] = False
-                                try: centralHist = rebinnedHists[hist.replace('__pdf0','')+'N17']
-                                except: qcd['17'] = False
-                                try: centralHist = rebinnedHists[hist.replace('__pdf0','')+'N18']
-                                except: qcd['18'] = False
-                        
                         for year in ['16','17']: 
+                                
                                 if year == '16': 
-                                        if 'qcd' in hist and not qcd[year]: continue
+                                        if not do[year]: continue
                                         newPDFName = 'pdfNew2016'
-                                        goodyear = '16'
+                                        thisyear = '16'
                                 else:
-                                        if 'qcd' in hist:
-                                                if not qcd['17'] and not qcd['18']: # false false
-                                                        continue
-                                                elif not qcd['17']: # false true
-                                                        goodyear = '18'
-                                                elif not qcd['18']: # true false
-                                                        goodyear = '17'
-                                                        add18 = False
-                                                else: # true true
-                                                        goodyear = '17'
-                                                        add18 = True
-                                        else:
-                                                goodyear = '17'
-                                                add18 = True
+                                        thisyear = '17'
+                                        add18 = False
+                                        if not do['17'] and not do['18']: continue
+                                        elif not do['17']: thisyear = '18'
+                                        elif do['18']: add18 = True
+                                        #else 17 yes, 18 no = default
+
                                         newPDFName = 'pdfNew20172018'
-                                        
-                
-                                #print '------------------------ new pdf hist',hist,' ------------------------'
-                                pdfNewUpHists[goodyear] = rebinnedHists[hist+goodyear].Clone(hist.replace(lumi17,lumi).replace('pdf0','pdfNew'+goodyear+upTag))
-                                pdfNewDnHists[goodyear] = rebinnedHists[hist+goodyear].Clone(hist.replace(lumi17,lumi).replace('pdf0','pdfNew'+goodyear+downTag))
-                                centralHist = rebinnedHists[hist.replace('__pdf0','')+'N'+goodyear]
-                                if goodyear == '17' and add18: centralHist.Add(rebinnedHists[hist.replace('__pdf0','')+'N18'])
+                                                        
+                                pdfNewUpHists[thisyear] = rebinnedHists[hist+thisyear].Clone(hist.replace(lumi17,lumi).replace('pdf0','pdfNew'+thisyear+upTag))
+                                pdfNewDnHists[thisyear] = rebinnedHists[hist+thisyear].Clone(hist.replace(lumi17,lumi).replace('pdf0','pdfNew'+thisyear+downTag))
+                                centralHist = rebinnedHists[hist.replace('__pdf0','')+'N'+thisyear]
+                                if thisyear == '17' and add18: centralHist.Add(rebinnedHists[hist.replace('__pdf0','')+'N18'])
               
-                                for ibin in range(1,pdfNewUpHists[goodyear].GetNbinsX()+1):
-                
-                                        if goodyear == '16': # replicas
+                                for ibin in range(1,pdfNewUpHists[thisyear].GetNbinsX()+1):
+                                        if thisyear == '16': # replicas
                                                 # list of bin contents
-                                                weightList = [rebinnedHists[(hist+goodyear).replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin) for pdfInd in range(100)]
+                                                weightList = [rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin) for pdfInd in range(100)]
                 
                                                 indPDFUp = sorted(range(len(weightList)), key=lambda k: weightList[k])[83]
                                                 indPDFDn = sorted(range(len(weightList)), key=lambda k: weightList[k])[15]
-                                                pdfNewUpHists[goodyear].SetBinContent(ibin,rebinnedHists[(hist+goodyear).replace('pdf0','pdf'+str(indPDFUp))].GetBinContent(ibin))
-                                                pdfNewDnHists[goodyear].SetBinContent(ibin,rebinnedHists[(hist+goodyear).replace('pdf0','pdf'+str(indPDFDn))].GetBinContent(ibin))
-                                                pdfNewUpHists[goodyear].SetBinError(ibin,rebinnedHists[(hist+goodyear).replace('pdf0','pdf'+str(indPDFUp))].GetBinError(ibin))
-                                                pdfNewDnHists[goodyear].SetBinError(ibin,rebinnedHists[(hist+goodyear).replace('pdf0','pdf'+str(indPDFDn))].GetBinError(ibin))
-                                        else:  # Hessian
+                                                pdfNewUpHists[thisyear].SetBinContent(ibin,rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(indPDFUp))].GetBinContent(ibin))
+                                                pdfNewDnHists[thisyear].SetBinContent(ibin,rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(indPDFDn))].GetBinContent(ibin))
+                                                pdfNewUpHists[thisyear].SetBinError(ibin,rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(indPDFUp))].GetBinError(ibin))
+                                                pdfNewDnHists[thisyear].SetBinError(ibin,rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(indPDFDn))].GetBinError(ibin))
+                                        else:  # Hessian                                                
                                                 # list of bin contents for both years together
-                                                if add18: weightList = [rebinnedHists[(hist+goodyear).replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin)+rebinnedHists[(hist+'18').replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin) for pdfInd in range(30)]
-                                                else: weightList = [rebinnedHists[(hist+goodyear).replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin) for pdfInd in range(30)]
-                
+                                                if add18: 
+                                                        if proc == 'sig' or 'TTM' in proc or 'BBM' in proc:
+                                                                weightList = [rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin)+rebinnedHists[(hist+'18').replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin) for pdfInd in range(30)]
+                                                        else:
+                                                                weightList = [rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin)+rebinnedHists[(hist+'18').replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin) for pdfInd in range(100)]
+
+                                                else: 
+                                                        if proc == 'sig' or 'TTM' in proc or 'BBM' in proc:
+                                                                weightList = [rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin) for pdfInd in range(30)]
+                                                        else:
+                                                                weightList = [rebinnedHists[(hist+thisyear).replace('pdf0','pdf'+str(pdfInd))].GetBinContent(ibin) for pdfInd in range(100)]
+
                                                 errsq = 0
                                                 for weight in weightList:
                                                         ## sum up squares of differences to the central value
                                                         errsq += (weight - centralHist.GetBinContent(ibin))**2
                                                 
                                                 ## find the percentage of the shift w.r.t the central value
-                                                if centralHist.GetBinContent(ibin) != 0: 
-                                                        shiftpct = math.sqrt(errsq)/centralHist.GetBinContent(ibin)
-                                                elif math.sqrt(errsq) > 0.0001: 
-                                                        print 'Weird: central is 0 but not PDF unc has errsq',errsq
-                                                else: 
+                                                if centralHist.GetBinContent(ibin) != 0: shiftpct = math.sqrt(errsq)/centralHist.GetBinContent(ibin)
+                                                else:
+                                                        if math.sqrt(errsq) > 0.0001: print 'Weird: central is 0 but not PDF unc has errsq',errsq,'in bin',ibin,'of hist',hist
+                                                        # after looking, seems like truncation error that central is 0...weight < float tolerance in nominal
                                                         shiftpct = 0
                 
-                                                if abs(shiftpct) > 1: print 'WARNING: pdf shift is',shiftpct,', flooring down at 0 in bin',ibin,'of hist',hist,'in',goodyear
-                
+                                                if abs(shiftpct) > 1 and centralHist.GetBinContent(ibin) > 0.008: print 'WARNING: pdf shift is',shiftpct,', flooring down at 0 in bin',ibin,'of hist',hist,'in',thisyear,'on bin content of',centralHist.GetBinContent(ibin)
+                                                
                                                 ## multiply the central value by 1 +/- the shift
-                                                pdfNewUpHists[goodyear].SetBinContent(ibin, max(0,centralHist.GetBinContent(ibin)*(1 + shiftpct)))
-                                                pdfNewDnHists[goodyear].SetBinContent(ibin, max(0,centralHist.GetBinContent(ibin)*(1 - shiftpct)))                                
+                                                pdfNewUpHists[thisyear].SetBinContent(ibin, max(0,centralHist.GetBinContent(ibin)*(1 + shiftpct)))
+                                                pdfNewDnHists[thisyear].SetBinContent(ibin, max(0,centralHist.GetBinContent(ibin)*(1 - shiftpct)))                                
                                         
                                 ## Special things for signal
                                 if normalizePDF and ('sig__pdf' in hist or '__'+sigName in hist):
                                         if rebinCombine: 
                                                 signame = hist.split('__')[1]
                                                 if sigName not in signame: print "DIDNT GET SIGNAME",signame
-                
-                                        scalefactorUp = pdfSFsUp[signame][int(goodyear)%16]
-                                        scalefactorDn = pdfSFsDn[signame][int(goodyear)%16]
-                                        pdfNewUpHists[goodyear].Scale(scalefactorUp)
-                                        pdfNewDnHists[goodyear].Scale(scalefactorDn)
+                                        
+                                        sfyear = thisyear
+                                        if thisyear == '18': sfyear = '17'
+                                        scalefactorUp = pdfSFsUp[signame][int(sfyear)%16]
+                                        scalefactorDn = pdfSFsDn[signame][int(sfyear)%16]
+                                        pdfNewUpHists[thisyear].Scale(scalefactorUp)
+                                        pdfNewDnHists[thisyear].Scale(scalefactorDn)
                 
                                         if rebinCombine:
-                                                for iBin in range(1,pdfNewUpHists[goodyear].GetNbinsX()+1):
-                                                        if pdfNewUpHists[goodyear].GetBinContent(iBin) == 0:            ##Check if bin content is zero
-                                                                pdfNewUpHists[goodyear].SetBinContent(iBin,1e-6) ##Setting bin content to nonzero value
-                                                                pdfNewUpHists[goodyear].SetBinError(iBin,math.sqrt(1e-6))
-                                                        if pdfNewDnHists[goodyear].GetBinContent(iBin) == 0:            ##Check if bin content is zero
-                                                                pdfNewDnHists[goodyear].SetBinContent(iBin,1e-6) ##Setting bin content to nonzero value
-                                                                pdfNewDnHists[goodyear].SetBinError(iBin,math.sqrt(1e-6))
+                                                for iBin in range(1,pdfNewUpHists[thisyear].GetNbinsX()+1):
+                                                        if pdfNewUpHists[thisyear].GetBinContent(iBin) == 0:            ##Check if bin content is zero
+                                                                pdfNewUpHists[thisyear].SetBinContent(iBin,1e-6) ##Setting bin content to nonzero value
+                                                                pdfNewUpHists[thisyear].SetBinError(iBin,math.sqrt(1e-6))
+                                                        if pdfNewDnHists[thisyear].GetBinContent(iBin) == 0:            ##Check if bin content is zero
+                                                                pdfNewDnHists[thisyear].SetBinContent(iBin,1e-6) ##Setting bin content to nonzero value
+                                                                pdfNewDnHists[thisyear].SetBinError(iBin,math.sqrt(1e-6))
                 
-                                if goodyear == '16':
-                                        pdfNewUpHist16 = pdfNewUpHists[goodyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+upTag))
-                                        if 'qcd' not in hist or qcd['17']: pdfNewUpHist16.Add(rebinnedHists[hist.replace('__pdf0','')+'N17'])
-                                        if 'qcd' not in hist or qcd['18']: pdfNewUpHist16.Add(rebinnedHists[hist.replace('__pdf0','')+'N18'])
+                                if thisyear == '16':
+                                        pdfNewUpHist16 = pdfNewUpHists[thisyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+upTag))
+                                        if do['17']: pdfNewUpHist16.Add(rebinnedHists[hist.replace('__pdf0','')+'N17'])
+                                        if do['18']: pdfNewUpHist16.Add(rebinnedHists[hist.replace('__pdf0','')+'N18'])
                                         pdfNewUpHist16.Write()
                 
-                                        pdfNewDnHist16 = pdfNewDnHists[goodyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+downTag))
-                                        if 'qcd' not in hist or qcd['17']: pdfNewDnHist16.Add(rebinnedHists[hist.replace('__pdf0','')+'N17'])
-                                        if 'qcd' not in hist or qcd['18']: pdfNewDnHist16.Add(rebinnedHists[hist.replace('__pdf0','')+'N18'])
+                                        pdfNewDnHist16 = pdfNewDnHists[thisyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+downTag))
+                                        if do['17']: pdfNewDnHist16.Add(rebinnedHists[hist.replace('__pdf0','')+'N17'])
+                                        if do['18']: pdfNewDnHist16.Add(rebinnedHists[hist.replace('__pdf0','')+'N18'])
                                         pdfNewDnHist16.Write()
                 
                                         if 'W0p5' in rfile or 'kinematics' in folder:
                                                 yieldsAll[pdfNewUpHist16.GetName().replace('_sig','_'+rfile.split('_')[-2])] = pdfNewUpHist16.Integral()
                                                 yieldsAll[pdfNewDnHist16.GetName().replace('_sig','_'+rfile.split('_')[-2])] = pdfNewDnHist16.Integral()
                                 else:
-                                        pdfNewUpHist = pdfNewUpHists[goodyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+upTag))
-                                        if 'qcd' not in hist or qcd['16']: pdfNewUpHist.Add(rebinnedHists[hist.replace('__pdf0','')+'N16'])
+                                        pdfNewUpHist = pdfNewUpHists[thisyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+upTag))
+                                        if do['16']: pdfNewUpHist.Add(rebinnedHists[hist.replace('__pdf0','')+'N16'])
                                         pdfNewUpHist.Write()
                 
-                                        pdfNewDnHist = pdfNewDnHists[goodyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+downTag))
-                                        if 'qcd' not in hist or qcd['16']: pdfNewDnHist.Add(rebinnedHists[hist.replace('__pdf0','')+'N16'])
+                                        pdfNewDnHist = pdfNewDnHists[thisyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+downTag))
+                                        if do['16']: pdfNewDnHist.Add(rebinnedHists[hist.replace('__pdf0','')+'N16'])
                                         pdfNewDnHist.Write()
                 
                                         if 'W0p5' in rfile or 'kinematics' in folder:
