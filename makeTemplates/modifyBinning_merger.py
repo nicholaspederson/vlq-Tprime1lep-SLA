@@ -313,8 +313,8 @@ for chn in totBkgHists.keys():
 
 	## Ignore all this if stat is > 1
 	if stat>1.0:
-		if 'notV' in chn or 'kinematics' in folder: xbinsListTemp[chn] = [tfile.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[0]).GetXaxis().GetNbins())]
-		else: xbinsListTemp[chn] = [tfile.Get(datahists[4]).GetXaxis().GetBinUpEdge(tfile.Get(datahists[4]).GetXaxis().GetNbins())]
+		if 'notV' in chn or 'kinematics' in folder: xbinsListTemp[chn] = [tfile17.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[0]).GetXaxis().GetNbins())]
+		else: xbinsListTemp[chn] = [tfile17.Get(datahists[4]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[4]).GetXaxis().GetNbins())]
 		for iBin in range(1,Nbins+1): 
 			xbinsListTemp[chn].append(totBkgHists[chn].GetXaxis().GetBinLowEdge(Nbins+1-iBin))
 		xbinsListTemp[chn.replace('isE','isM')] = xbinsListTemp[chn]
@@ -1081,6 +1081,7 @@ for proc in bkgProcList+sigProcList:
 
 postFix = ''
 if addShapes: postFix+='_addShps'
+if not FullMi: postFix+='_BKGNORM'
 if rebinCombine: out=open(templateDir+'/'+combinefile.replace('templates','yields').replace('.root','_rebinned_stat'+str(stat).replace('.','p'))+postFix+'.txt','w')
 else: out=open(templateDir+'/'+thetafile.replace('templates','yields').replace('.root','_rebinned_stat'+str(stat).replace('.','p'))+postFix+'.txt','w')
 
