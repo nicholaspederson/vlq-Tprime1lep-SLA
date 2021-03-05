@@ -34,7 +34,7 @@ if len(sys.argv)>1: iPlot=str(sys.argv[1])
 
 folder = 'templatesSR_Mar2021_TT'
 if len(sys.argv)>2: folder=str(sys.argv[2])
-inputfolder16 = '/uscms_data/d3/cholz/CMSSW_10_2_10/src/tptp_2016/makeTemplates/'+folder.replace('Mar2021_TT','Feb2021TT')
+inputfolder16 = '/uscms_data/d3/cholz/CMSSW_10_2_10/src/tptp_2016/makeTemplates/'+folder.replace('Mar2021_TT','Feb2021TT').replace('Mar2021_BB','Feb2021BB')
 inputfolder17 = '/uscms_data/d3/escharni/CMSSW_10_2_10/src/singleLepAnalyzer/makeTemplates/'+folder
 inputfolder18 = '/uscms_data/d3/escharni/CMSSW_10_2_10/src/tptp_2018/makeTemplates/'+folder
 
