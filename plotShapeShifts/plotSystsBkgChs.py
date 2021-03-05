@@ -17,8 +17,8 @@ rfilePostFix = '_Combine_BKGNORM_rebinned_stat0p3_smoothedLOWESS'
 BRStr = '_bW0p5_tZ0p25_tH0p25'
 
 lumi = 137
-lumiStr = '_137fb'
-outDir = os.getcwd()+'/templatesSRCR_Mar2021_TTcombined/'
+lumiStr = '_137'
+outDir = os.getcwd()+'/templatesSRCR_Mar2021_TTcombinedSmooth5/'
 templateFile = '/uscms_data/d3/escharni/CMSSW_10_2_10/src/tptp_2018/makeTemplates/templatesSR_Mar2021_TT/templates_'+discriminant+BRStr+lumiStr+rfilePostFix+'.root'
 if year == '2018':
 	lumi = 59.7
@@ -42,34 +42,54 @@ if 'templatesSRCR' not in templateFile:
 systnames = {
         'pileup':'Pileup',
         'prefire':'Prefiring',
-        'jec':'JEC',
-        'jer':'JER',
+        'jec2016':'JEC 16',
+        'jec2017':'JEC 17',
+        'jec2018':'JEC 18',
+        'jer2016':'JER 16',
+        'jer2017':'JER 17',
+        'jer2018':'JER 18',
         'jsf':'HT weight W',
         'muRFcorrdNewSig':'Ren./Fact. Sig',
         'muRFcorrdNewTop':'Ren./Fact. Top',
         'muRFcorrdNewEwk':'Ren./Fact. Ewk',
         'muRFcorrdNewQCD':'Ren./Fact. QCD',
-        'eltrig':'El trigger',
-        'mutrig':'Mu trigger',
+        'eltrig2016':'El trigger 16',
+        'eltrig2017':'El trigger 17',
+        'eltrig2018':'El trigger 18',
+        'mutrig2016':'Mu trigger 16',
+        'mutrig2017':'Mu trigger 17',
+        'mutrig2018':'Mu trigger 18',
         'btag':'DeepCSV bc',
         'ltag':'DeepCSV udsg',
         'Teff':'DeepAK8 T',
-        'Tmis':'DeepAK8 T mistag',
+        'Tmis2016':'DeepAK8 T mistag 16',
+        'Tmis2017':'DeepAK8 T mistag 17',
+        'Tmis2018':'DeepAK8 T mistag 18',
         'Heff':'DeepAK8 H',
-        'Hmis':'DeepAK8 H mistag',
+        'Hmis2016':'DeepAK8 H mistag 16',
+        'Hmis2017':'DeepAK8 H mistag 17',
+        'Hmis2018':'DeepAK8 H mistag 18',
         'Zeff':'DeepAK8 Z',
-        'Zmis':'DeepAK8 Z mistag',
+        'Zmis2016':'DeepAK8 Z mistag 16',
+        'Zmis2017':'DeepAK8 Z mistag 17',
+        'Zmis2018':'DeepAK8 Z mistag 18',
         'Weff':'DeepAK8 W',
-        'Wmis':'DeepAK8 W mistag',
+        'Wmis2016':'DeepAK8 W mistag 16',
+        'Wmis2017':'DeepAK8 W mistag 17',
+        'Wmis2018':'DeepAK8 W mistag 18',
         'Beff':'DeepAK8 B',
-        'Bmis':'DeepAK8 B mistag',
+        'Bmis2016':'DeepAK8 B mistag 16',
+        'Bmis2017':'DeepAK8 B mistag 17',
+        'Bmis2018':'DeepAK8 B mistag 18',
         'dnnJ':'DeepAK8 QCD corr',
         'toppt':'HT weight top'}
 systematics = systnames.keys()
 if year == '2018': systematics.remove('prefire')
+#systematics = {'jec2016','jec2017','jec2018','jer2016','jer2017','jer2018'}
 		
 RFile = R.TFile(templateFile)
 
+if not lumiStr[-2:] == 'fb': lumiStr += 'fb'
 for syst in systematics:
 	if 'Ewk' in syst: 
 		bkgList = ['ewk','top','qcd']
@@ -82,8 +102,9 @@ for syst in systematics:
 			print '-----------------------------'+syst+', '+ch+', '+tag+'--------------------------------'
 			histname = discriminant
 			if 'prime' in discriminant and ('dnnLarge' in tag): histname = 'HTNtag'
-
-			Prefix = histname+lumiStr+'_'+channels[0]+'_'+tag+'_DeepAK8__'+bkgList[0]
+                        region = 'isSR'
+                        if 'dnnLarge' in tag: region = 'isCR'
+			Prefix = histname+lumiStr+'_'+region+'_'+channels[0]+'_'+tag+'_DeepAK8__'+bkgList[0]
 			try: 
 				if ch != 'isL': hNm = RFile.Get(Prefix.replace(channels[0],ch)).Clone()
 				else: 
@@ -364,7 +385,7 @@ for syst in systematics:
 			hUp.Reset()
 			hDn.Reset()
 
-			Prefix = histname+lumiStr+'_'+channels[0]+'_'+tag+'_DeepAK8__TTM1400'
+			Prefix = histname+lumiStr+'_'+region+'_'+channels[0]+'_'+tag+'_DeepAK8__TTM1400'
 			try: 
 				if ch != 'isL': hNm = RFile.Get(Prefix.replace(channels[0],ch)).Clone()
 				else: 

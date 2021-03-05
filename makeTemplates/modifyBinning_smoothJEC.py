@@ -25,7 +25,7 @@ start_time = time.time()
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #cutString = 'splitLess/'#BB_templates/'
-templateDir = os.getcwd()+'/templatesSR_Mar2021_TT/'
+templateDir = os.getcwd()+'/templatesSR_Mar2021_BB/'
 
 rebinCombine = True
 smoothLOWESS = True
@@ -87,6 +87,7 @@ for rfile in rfiles:
         jerUphists = [k.GetName() for k in tfiles[iRfile].GetListOfKeys() if '__jer' in k.GetName() and upTag in k.GetName()]
 
         for hist in jecUphists+jerUphists:
+            print '\t',hist
 
             if 'qcd' in hist: # don't bother
                 rebinnedHists[hist].Write()
