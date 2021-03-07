@@ -29,16 +29,16 @@ start_time = time.time()
 # -- Use "removalKeys" to remove specific systematics from the output file.
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-iPlot='DnnTprime'
+iPlot='HTdnnL'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 
-folder = 'templatesSR_Mar2021_TT'
+folder = 'templatesCR_Mar2021_TT'
 if len(sys.argv)>2: folder=str(sys.argv[2])
 inputfolder16 = '/uscms_data/d3/cholz/CMSSW_10_2_10/src/tptp_2016/makeTemplates/'+folder.replace('Mar2021_TT','Feb2021TT').replace('Mar2021_BB','Feb2021BB')
 inputfolder17 = '/uscms_data/d3/escharni/CMSSW_10_2_10/src/singleLepAnalyzer/makeTemplates/'+folder
 inputfolder18 = '/uscms_data/d3/escharni/CMSSW_10_2_10/src/tptp_2018/makeTemplates/'+folder
 
-stat_saved = 0.3 #statistical uncertainty requirement (enter >1.0 for no rebinning; i.g., "1.1")
+stat_saved = 0.2 #statistical uncertainty requirement (enter >1.0 for no rebinning; i.g., "1.1")
 if len(sys.argv)>3: stat_saved=float(sys.argv[3])
 
 FullMu = False
@@ -333,6 +333,10 @@ print "//"*40
 xbins = {}
 for key in xbinsList.keys(): xbins[key] = array('d', xbinsList[key])
 
+tfile16.Close()
+tfile17.Close()
+tfile18.Close()
+
 #os._exit(1)
 
 ### Updated for 2018, JH August 2019. symmetric Hessian PDF version August 2020
@@ -442,19 +446,22 @@ for rfile in rfiles:
         print '\t',rfile
         print '\t',rfile.replace(lumi17,lumi16).replace(inputfolder17,inputfolder16)
         print '\t',rfile.replace(lumi17,lumi18).replace(inputfolder17,inputfolder18)
-	tfiles16 = {}
-	tfiles17 = {}
-	tfiles18 = {}
-	outputRfiles = {}
-	tfiles17[iRfile] = TFile(rfile)	
-	tfiles16[iRfile] = TFile(rfile.replace(lumi17,lumi16).replace(inputfolder17,inputfolder16))	
-	tfiles18[iRfile] = TFile(rfile.replace(lumi17,lumi18).replace(inputfolder17,inputfolder18))	
+	#tfiles16 = {}
+	#tfiles17 = {}
+	#tfiles18 = {}
+	#outputRfiles = {}
+	#tfiles17[iRfile] = TFile(rfile)	
+	#tfiles16[iRfile] = TFile(rfile.replace(lumi17,lumi16).replace(inputfolder17,inputfolder16))	
+	#tfiles18[iRfile] = TFile(rfile.replace(lumi17,lumi18).replace(inputfolder17,inputfolder18))	
+	tfiles17iRfile = TFile(rfile)	
+	tfiles16iRfile = TFile(rfile.replace(lumi17,lumi16).replace(inputfolder17,inputfolder16))	
+	tfiles18iRfile = TFile(rfile.replace(lumi17,lumi18).replace(inputfolder17,inputfolder18))	
 	if not rebin4chi2: 
-		if not FullMu: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
-                else: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
+		if not FullMu: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
+                else: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
         else: 
-                if not FullMu: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
-		else: outputRfiles[iRfile] = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
+                if not FullMu: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
+		else: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
                         
                         
         signame = rfile.split('/')[-1].split('_')[2]
@@ -494,24 +501,24 @@ for rfile in rfiles:
 					if 'kinematics' in folder: yieldHistName = hist.replace('_sig','_'+rfile.split('_')[-2])
                                         
                         if any(item in hist for item in uncorrelated):
-                                ## uncorrelated nuisances: add each year to nominal from other years. Try to RENAME HERE with .Clone
+                                ## uncorrelated nuisances: add each year to nominal from other years. Try to RENAME HERE with .Rebin
                                 for syst in uncorrelated:
                                         if syst not in hist: continue
                                                 
                                         if do['16']:
-                                                rebinnedHists[hist+'16'] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2016').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
-                                                if do['17']: rebinnedHists[hist+'16'].Add(tfiles17[iRfile].Get(hist.replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                if do['18']: rebinnedHists[hist+'16'].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                rebinnedHists[hist+'16'] = tfiles16iRfile.Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2016').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
+                                                if do['17']: rebinnedHists[hist+'16'].Add(tfiles17iRfile.Get(hist.replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                if do['18']: rebinnedHists[hist+'16'].Add(tfiles18iRfile.Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
 
                                         if do['17']:
-                                                rebinnedHists[hist+'17'] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2017').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
-                                                if do['16']: rebinnedHists[hist+'17'].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                if do['18']: rebinnedHists[hist+'17'].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                rebinnedHists[hist+'17'] = tfiles17iRfile.Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2017').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
+                                                if do['16']: rebinnedHists[hist+'17'].Add(tfiles16iRfile.Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                if do['18']: rebinnedHists[hist+'17'].Add(tfiles18iRfile.Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
                                                 
                                         if do['18']: 
-                                                rebinnedHists[hist+'18'] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2018').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
-                                                if do['16']: rebinnedHists[hist+'18'].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')+'dummy',xbins[chn]))
-                                                if do['17']: rebinnedHists[hist+'18'].Add(tfiles17[iRfile].Get(hist.replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                rebinnedHists[hist+'18'] = tfiles18iRfile.Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi).replace(syst,syst+'2018').replace('trigeffEl','elTrig').replace('trigeffMu','muTrig'),xbins[chn])
+                                                if do['16']: rebinnedHists[hist+'18'].Add(tfiles16iRfile.Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')+'dummy',xbins[chn]))
+                                                if do['17']: rebinnedHists[hist+'18'].Add(tfiles17iRfile.Get(hist.replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
                                                 
                                         for year in shortyears: 
                                                 if not do[year]: continue
@@ -539,39 +546,39 @@ for rfile in rfiles:
                                                 if syst not in hist: continue
 
                                                 if do['17']:
-                                                        rebinnedHists[hist] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
+                                                        rebinnedHists[hist] = tfiles17iRfile.Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
                                                         if do['16']: 
-                                                                if 'dnnJ' in hist: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                                else: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                if 'dnnJ' in hist: rebinnedHists[hist].Add(tfiles16iRfile.Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                else: rebinnedHists[hist].Add(tfiles16iRfile.Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
                                                         if do['18']:
-                                                                if 'prefire' in hist: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                                else: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                if 'prefire' in hist: rebinnedHists[hist].Add(tfiles18iRfile.Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                else: rebinnedHists[hist].Add(tfiles18iRfile.Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
                                                 elif do['16']:
-                                                        if 'dnnJ' in hist: rebinnedHists[hist] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn])
-                                                        else: rebinnedHists[hist] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn])
+                                                        if 'dnnJ' in hist: rebinnedHists[hist] = tfiles16iRfile.Get(hist.replace(lumi17,lumi16).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
+                                                        else: rebinnedHists[hist] = tfiles16iRfile.Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
 
                                                         if do['18']:
-                                                                if 'prefire' in hist: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
-                                                                else: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                if 'prefire' in hist: rebinnedHists[hist].Add(tfiles18iRfile.Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
+                                                                else: rebinnedHists[hist].Add(tfiles18iRfile.Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn]))
                                                 elif do['18']:
-                                                        if 'prefire' in hist: rebinnedHists[hist] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,'dummy',xbins[chn])
-                                                        else: rebinnedHists[hist] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,'dummy',xbins[chn])
+                                                        if 'prefire' in hist: rebinnedHists[hist] = tfiles18iRfile.Get(hist.replace(lumi17,lumi18).replace(syst+upTag,'').replace(syst+downTag,'')).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
+                                                        else: rebinnedHists[hist] = tfiles18iRfile.Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
 
 
                                 elif any(item in hist for item in special) and 'kinematics' not in folder:
                                         ## special: we will deal with these later, for now just rebin and put into rebinnedHists
                                         try:
-                                                if do['16']: rebinnedHists[hist+'16'] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist+'16',xbins[chn])
-                                                if do['17']: rebinnedHists[hist+'17'] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist+'17',xbins[chn])
-                                                if do['18']: rebinnedHists[hist+'18'] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist+'18',xbins[chn])
+                                                if do['16']: rebinnedHists[hist+'16'] = tfiles16iRfile.Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist+'16',xbins[chn])
+                                                if do['17']: rebinnedHists[hist+'17'] = tfiles17iRfile.Get(hist).Rebin(len(xbins[chn])-1,hist+'17',xbins[chn])
+                                                if do['18']: rebinnedHists[hist+'18'] = tfiles18iRfile.Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist+'18',xbins[chn])
                                         except:
                                                 if 'pdf' not in hist: print '\t Specials: unexpected missing 2017 or 2018:',hist
                                                 pass
                                         if 'muR'+upTag in hist:
                                                 ## for the muRF we need a nominal histogram saved...
-                                                if do['17']: rebinnedHists[hist[:hist.find('__mu')]+'N17'] = tfiles17[iRfile].Get(hist[:hist.find('__mu')]).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N17',xbins[chn])
-                                                if do['16']: rebinnedHists[hist[:hist.find('__mu')]+'N16'] = tfiles16[iRfile].Get((hist[:hist.find('__mu')]).replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N16',xbins[chn])
-                                                if do['18']: rebinnedHists[hist[:hist.find('__mu')]+'N18'] = tfiles18[iRfile].Get((hist[:hist.find('__mu')]).replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N18',xbins[chn])
+                                                if do['17']: rebinnedHists[hist[:hist.find('__mu')]+'N17'] = tfiles17iRfile.Get(hist[:hist.find('__mu')]).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N17',xbins[chn])
+                                                if do['16']: rebinnedHists[hist[:hist.find('__mu')]+'N16'] = tfiles16iRfile.Get((hist[:hist.find('__mu')]).replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N16',xbins[chn])
+                                                if do['18']: rebinnedHists[hist[:hist.find('__mu')]+'N18'] = tfiles18iRfile.Get((hist[:hist.find('__mu')]).replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist[:hist.find('__mu')]+'N18',xbins[chn])
 
                                         for year in shortyears:                                                 
                                                 if not do[year]: continue
@@ -588,13 +595,13 @@ for rfile in rfiles:
                                 else:
                                         ## else: not a nuisance, add each year to the others
                                         if do['17']: 
-                                                rebinnedHists[hist] = tfiles17[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
-                                                if do['16']: rebinnedHists[hist].Add(tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist,xbins[chn]))
-                                                if do['18']: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist,xbins[chn]))
+                                                rebinnedHists[hist] = tfiles17iRfile.Get(hist).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
+                                                if do['16']: rebinnedHists[hist].Add(tfiles16iRfile.Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,"dummy",xbins[chn]))
+                                                if do['18']: rebinnedHists[hist].Add(tfiles18iRfile.Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,"dummy",xbins[chn]))
                                         elif do['16']:
-                                                rebinnedHists[hist] = tfiles16[iRfile].Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist,xbins[chn])
-                                                if do['18']: rebinnedHists[hist].Add(tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist,xbins[chn]))
-                                        elif do['18']: rebinnedHists[hist] = tfiles18[iRfile].Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist,xbins[chn])
+                                                rebinnedHists[hist] = tfiles16iRfile.Get(hist.replace(lumi17,lumi16)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
+                                                if do['18']: rebinnedHists[hist].Add(tfiles18iRfile.Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn]))
+                                        elif do['18']: rebinnedHists[hist] = tfiles18iRfile.Get(hist.replace(lumi17,lumi18)).Rebin(len(xbins[chn])-1,hist.replace(lumi17,lumi),xbins[chn])
                                                 
                                         
                                 ## Done with these guys -- they are SD(0) and .Scale'd above
@@ -632,9 +639,9 @@ for rfile in rfiles:
 	
 
 		#Constructing muRF shapes
-                muRUphists17 = [hist.GetName() for hist in tfiles17[iRfile].GetListOfKeys() if 'muR'+upTag in hist.GetName() and chn in hist.GetName()]
-                muRUphists16 = [(hist.GetName()).replace(lumi16,lumi17) for hist in tfiles16[iRfile].GetListOfKeys() if 'muR'+upTag in hist.GetName() and chn in hist.GetName()]
-                muRUphists18 = [(hist.GetName()).replace(lumi18,lumi17) for hist in tfiles18[iRfile].GetListOfKeys() if 'muR'+upTag in hist.GetName() and chn in hist.GetName()]
+                muRUphists17 = [hist.GetName() for hist in tfiles17iRfile.GetListOfKeys() if 'muR'+upTag in hist.GetName() and chn in hist.GetName()]
+                muRUphists16 = [(hist.GetName()).replace(lumi16,lumi17) for hist in tfiles16iRfile.GetListOfKeys() if 'muR'+upTag in hist.GetName() and chn in hist.GetName()]
+                muRUphists18 = [(hist.GetName()).replace(lumi18,lumi17) for hist in tfiles18iRfile.GetListOfKeys() if 'muR'+upTag in hist.GetName() and chn in hist.GetName()]
                 muset17 = set(muRUphists17)
                 muset16 = set(muRUphists16)
                 muset18 = set(muRUphists18)
@@ -642,7 +649,7 @@ for rfile in rfiles:
                 muset16not17 = set(mulist16not17)
                 mulist18not1617 = list(muset18 - muset17 - muset16not17)
                 muRUphists = muRUphists17 + mulist16not17 + mulist18not1617
-                #muRUphists = [k.GetName() for k in tfiles17[iRfile].GetListOfKeys() if 'muR'+upTag in k.GetName() and chn in k.GetName()]
+                #muRUphists = [k.GetName() for k in tfiles17iRfile.GetListOfKeys() if 'muR'+upTag in k.GetName() and chn in k.GetName()]
 		for hist in muRUphists:
                         # pull out the Discrim_stuff_stuff__proc part of the name
                         proc = hist.split('__')[1]
@@ -734,13 +741,13 @@ for rfile in rfiles:
 			muRFcorrdNewDnHist.Write()
 
                         if 'W0p5' in rfile or 'kinematics' in folder:
-                                yieldsAll[muRFcorrdNewUpHist.GetName().replace('_sig','_'+rfile.split('_')[-2])] = muRFcorrdNewUpHist.Integral()
-                                yieldsAll[muRFcorrdNewDnHist.GetName().replace('_sig','_'+rfile.split('_')[-2])] = muRFcorrdNewDnHist.Integral()
+                                yieldsAll[muRFcorrdNewUpHist.GetName().replace(lumi,lumi17).replace('_sig','_'+rfile.split('_')[-2])] = muRFcorrdNewUpHist.Integral()
+                                yieldsAll[muRFcorrdNewDnHist.GetName().replace(lumi,lumi17).replace('_sig','_'+rfile.split('_')[-2])] = muRFcorrdNewDnHist.Integral()
 
 		#Constructing PDF shapes
-                pdfUphists17 = [hist.GetName() for hist in tfiles17[iRfile].GetListOfKeys() if 'pdf0' in hist.GetName() and chn in hist.GetName()]
-                pdfUphists16 = [(hist.GetName()).replace(lumi16,lumi17) for hist in tfiles16[iRfile].GetListOfKeys() if 'pdf0' in hist.GetName() and chn in hist.GetName()]
-                pdfUphists18 = [(hist.GetName()).replace(lumi18,lumi17) for hist in tfiles18[iRfile].GetListOfKeys() if 'pdf0' in hist.GetName() and chn in hist.GetName()]
+                pdfUphists17 = [hist.GetName() for hist in tfiles17iRfile.GetListOfKeys() if 'pdf0' in hist.GetName() and chn in hist.GetName()]
+                pdfUphists16 = [(hist.GetName()).replace(lumi16,lumi17) for hist in tfiles16iRfile.GetListOfKeys() if 'pdf0' in hist.GetName() and chn in hist.GetName()]
+                pdfUphists18 = [(hist.GetName()).replace(lumi18,lumi17) for hist in tfiles18iRfile.GetListOfKeys() if 'pdf0' in hist.GetName() and chn in hist.GetName()]
                 pdfset17 = set(pdfUphists17)
                 pdfset16 = set(pdfUphists16)
                 pdfset18 = set(pdfUphists18)
@@ -749,7 +756,7 @@ for rfile in rfiles:
                 pdflist18not1617 = list(pdfset18 - pdfset17 - pdfset16not17)
                 pdfUphists = pdfUphists17 + pdflist16not17 + pdflist18not1617
 
-		#pdfUphists = [k.GetName() for k in tfiles17[iRfile].GetListOfKeys() if 'pdf0' in k.GetName() and chn in k.GetName()]
+		#pdfUphists = [k.GetName() for k in tfiles17iRfile.GetListOfKeys() if 'pdf0' in k.GetName() and chn in k.GetName()]
 
 		for hist in pdfUphists:
                         # pull out the Discrim_stuff_stuff__proc part of the name
@@ -819,7 +826,7 @@ for rfile in rfiles:
                                                 ## find the percentage of the shift w.r.t the central value
                                                 if centralHist.GetBinContent(ibin) != 0: shiftpct = math.sqrt(errsq)/centralHist.GetBinContent(ibin)
                                                 else:
-                                                        if math.sqrt(errsq) > 0.0001: print 'Weird: central is 0 but not PDF unc has errsq',errsq,'in bin',ibin,'of hist',hist
+                                                        if errsq > 0.0001: print 'Weird: central is 0 but not PDF unc has errsq',errsq,'in bin',ibin,'of hist',hist
                                                         # after looking, seems like truncation error that central is 0...weight < float tolerance in nominal
                                                         shiftpct = 0
                 
@@ -863,8 +870,8 @@ for rfile in rfiles:
                                         pdfNewDnHist16.Write()
                 
                                         if 'W0p5' in rfile or 'kinematics' in folder:
-                                                yieldsAll[pdfNewUpHist16.GetName().replace('_sig','_'+rfile.split('_')[-2])] = pdfNewUpHist16.Integral()
-                                                yieldsAll[pdfNewDnHist16.GetName().replace('_sig','_'+rfile.split('_')[-2])] = pdfNewDnHist16.Integral()
+                                                yieldsAll[pdfNewUpHist16.GetName().replace(lumi,lumi17).replace('_sig','_'+rfile.split('_')[-2])] = pdfNewUpHist16.Integral()
+                                                yieldsAll[pdfNewDnHist16.GetName().replace(lumi,lumi17).replace('_sig','_'+rfile.split('_')[-2])] = pdfNewDnHist16.Integral()
                                 else:
                                         pdfNewUpHist = pdfNewUpHists[thisyear].Clone(hist.replace(lumi17,lumi).replace('pdf0',newPDFName+upTag))
                                         if do['16']: pdfNewUpHist.Add(rebinnedHists[hist.replace('__pdf0','')+'N16'])
@@ -875,17 +882,19 @@ for rfile in rfiles:
                                         pdfNewDnHist.Write()
                 
                                         if 'W0p5' in rfile or 'kinematics' in folder:
-                                                yieldsAll[pdfNewUpHist.GetName().replace('_sig','_'+rfile.split('_')[-2])] = pdfNewUpHist.Integral()
-                                                yieldsAll[pdfNewDnHist.GetName().replace('_sig','_'+rfile.split('_')[-2])] = pdfNewDnHist.Integral()
-                        
-	tfiles16[iRfile].Close()
-	tfiles17[iRfile].Close()
-	tfiles18[iRfile].Close()
-	outputRfiles[iRfile].Close()
+                                                yieldsAll[pdfNewUpHist.GetName().replace(lumi,lumi17).replace('_sig','_'+rfile.split('_')[-2])] = pdfNewUpHist.Integral()
+                                                yieldsAll[pdfNewDnHist.GetName().replace(lumi,lumi17).replace('_sig','_'+rfile.split('_')[-2])] = pdfNewDnHist.Integral()
+        
+        print 'Closing input files...'
+	tfiles16iRfile.Close()
+	tfiles17iRfile.Close()
+	tfiles18iRfile.Close()
+        print 'Closing output file...'
+	outputRfilesiRfile.Close()
 	iRfile+=1
-tfile16.Close()
-tfile17.Close()
-tfile18.Close()
+#tfile16.Close()
+#tfile17.Close()
+#tfile18.Close()
 print ">> Rebinning Done!"
 
 
@@ -946,6 +955,7 @@ for isEM in isEMlist:
 						except:
 							if bkg != 'qcd': print "Missing",bkg,"for channel in totBkg or dataOverBkg:",chn
 							pass
+
 					yielderrtemp += (corrdSys*yieldtemp)**2
 					if proc=='dataOverBkg':
 						dataTemp = yieldsAll[histoPrefix+dataName]+1e-20
@@ -1081,7 +1091,7 @@ for proc in bkgProcList+sigProcList:
 
 postFix = ''
 if addShapes: postFix+='_addShps'
-if not FullMi: postFix+='_BKGNORM'
+if not FullMu: postFix+='_BKGNORM'
 if rebinCombine: out=open(templateDir+'/'+combinefile.replace('templates','yields').replace('.root','_rebinned_stat'+str(stat).replace('.','p'))+postFix+'.txt','w')
 else: out=open(templateDir+'/'+thetafile.replace('templates','yields').replace('.root','_rebinned_stat'+str(stat).replace('.','p'))+postFix+'.txt','w')
 
