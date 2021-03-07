@@ -43,6 +43,8 @@ if len(sys.argv)>3: stat_saved=float(sys.argv[3])
 
 FullMu = False
 if len(sys.argv)>4: FullMu=bool(eval(sys.argv[4]))
+if FullMu: addFlat = False
+else: addFlat = True
 
 rebinCombine = True #else rebins theta templates ## COME SET TO TRUE WHEN DOING SR OR CR isCatagorized
 #print "rebin combine Before: ", rebinCombine
@@ -176,6 +178,8 @@ for hist in datahists:
 	DataHists[channel] = tfile17.Get(hist).Clone()
         DataHists[channel].Add(tfile16.Get(hist.replace(lumi17,lumi16)))
         DataHists[channel].Add(tfile18.Get(hist.replace(lumi17,lumi18)))        
+        if 'templatesCR' in folder and 'dnnLargeJ' in channel:
+                DataHists[channel].Rebin(5)
         
 
 ## Background hists will at least check everything. Then we see if any are missing and flag them
@@ -204,6 +208,9 @@ for hist in datahists:
 		except: 		
                         badhistlist.setdefault(proc+'18',[]).append(hist.replace('__'+dataName,'__'+proc))
                         pass
+        if 'templatesCR' in folder and 'dnnLargeJ' in channel:
+                totBkgHists[channel].Rebin(5)
+        
 
 print 'Processes with missing histograms:',badhistlist.keys()
 #for key in badhistlist.keys():
@@ -228,23 +235,27 @@ for chn in totBkgHists.keys():
 	if 'isE' not in chn: continue
 	print 'Processing',chn
 
-	Nbins = 0
-	if 'templates' in folder:
-		if 'notV' in chn: ## will be SR, need to skip past the taggedXXXX in case they differ
-			xbinsListTemp[chn]=[tfile17.Get(datahists[4]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[4]).GetXaxis().GetNbins())]
-			Nbins = tfile17.Get(datahists[4]).GetNbinsX()
-		elif iPlot == 'HTNtag' and 'LargeJ' in chn: ## will be CR, need to skip first 5 that are jet counts
-			xbinsListTemp[chn]=[tfile17.Get(datahists[5]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[5]).GetXaxis().GetNbins())]
-			Nbins = tfile17.Get(datahists[5]).GetNbinsX()
-		elif iPlot == 'HTdnnL' and 'LargeJ' in chn: ## will be CR, need to skip first 1 that has jet tag
-			xbinsListTemp[chn]=[tfile17.Get(datahists[1]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[1]).GetXaxis().GetNbins())]
-			Nbins = tfile17.Get(datahists[1]).GetNbinsX()
-		else: ## use the first datahist
-			xbinsListTemp[chn]=[tfile17.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[0]).GetXaxis().GetNbins())]
-			Nbins = tfile17.Get(datahists[0]).GetNbinsX()
-	else:
-		xbinsListTemp[chn]=[tfile17.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[0]).GetXaxis().GetNbins())]
-		Nbins = tfile17.Get(datahists[0]).GetNbinsX()
+        xbinsListTemp[chn] = [DataHists[chn].GetXaxis().GetBinUpEdge(DataHists[chn].GetXaxis().GetNbins())]
+        Nbins = DataHists[chn].GetNbinsX()
+
+        ## Why are we doing all this re-getting of histograms? Why not just ask for DataHists[chn]? See above.
+        # Nbins = 0
+	# if 'templates' in folder:
+	# 	if 'notV' in chn: ## will be SR, need to skip past the taggedXXXX in case they differ
+	# 		xbinsListTemp[chn]=[tfile17.Get(datahists[4]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[4]).GetXaxis().GetNbins())]
+	# 		Nbins = tfile17.Get(datahists[4]).GetNbinsX()
+	# 	elif iPlot == 'HTNtag' and 'LargeJ' in chn: ## will be CR, need to skip first 5 that are jet counts
+	# 		xbinsListTemp[chn]=[tfile17.Get(datahists[5]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[5]).GetXaxis().GetNbins())]
+	# 		Nbins = tfile17.Get(datahists[5]).GetNbinsX()
+	# 	elif iPlot == 'HTdnnL' and 'LargeJ' in chn: ## will be CR, need to skip first 1 that has jet tag
+	# 		xbinsListTemp[chn]=[tfile17.Get(datahists[1]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[1]).GetXaxis().GetNbins())]
+	# 		Nbins = tfile17.Get(datahists[1]).GetNbinsX()
+	# 	else: ## use the first datahist
+	# 		xbinsListTemp[chn]=[tfile17.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[0]).GetXaxis().GetNbins())]
+	# 		Nbins = tfile17.Get(datahists[0]).GetNbinsX()
+	# else:
+	# 	xbinsListTemp[chn]=[tfile17.Get(datahists[0]).GetXaxis().GetBinUpEdge(tfile17.Get(datahists[0]).GetXaxis().GetNbins())]
+	# 	Nbins = tfile17.Get(datahists[0]).GetNbinsX()
 
 	
 	totTempBinContent_E = 0.
@@ -460,10 +471,9 @@ for rfile in rfiles:
 		if not FullMu: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
                 else: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
         else: 
-                if not FullMu: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
-		else: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
-                        
-                        
+                if not FullMu: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2rb5_BKGNORM_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
+		else: outputRfilesiRfile = TFile(rfile.replace(lumi17,lumi).replace(inputfolder17,templateDir).replace('.root','_chi2rb5_rebinned_stat'+str(stat).replace('.','p')+'.root'),'RECREATE')
+
         signame = rfile.split('/')[-1].split('_')[2]
 
 	if not rebinCombine:
@@ -926,6 +936,8 @@ def getShapeSystUnc(proc,chn):
 	shpSystUncPrctg = (math.sqrt(totUpShiftPrctg)+math.sqrt(totDnShiftPrctg))/2 #symmetrize the total shape uncertainty up/down shifts
 	return shpSystUncPrctg	
 
+flatuncs = {'qcd':0.25,'ewk':0.25,'top':0.30}
+if not addFlat: flatuncs = {'qcd':0.0,'ewk':0.0,'top':0.0}
 table = []
 taglist = ['tagged','notV']
 if 'templatesCR' in folder: taglist = ['dnnLarge']
@@ -951,6 +963,7 @@ for isEM in isEMlist:
 						try:
 							yieldtemp += yieldsAll[histoPrefix+bkg]
 							yielderrtemp += yieldsErrsAll[histoPrefix+bkg]**2
+                                                        yielderrtemp += (yieldsAll[histoPrefix+bkg]*flatuncs[bkg])**2
 							yielderrtemp += (getShapeSystUnc(bkg,chn)*yieldsAll[histoPrefix+bkg])**2
 						except:
 							if bkg != 'qcd': print "Missing",bkg,"for channel in totBkg or dataOverBkg:",chn
@@ -966,6 +979,7 @@ for isEM in isEMlist:
 					try:
 						yieldtemp += yieldsAll[histoPrefix+proc]
 						yielderrtemp += yieldsErrsAll[histoPrefix+proc]**2
+                                                if proc in bkgProcList: yielderrtemp += (yieldsAll[histoPrefix+proc]*flatuncs[proc])**2
 						yielderrtemp += (getShapeSystUnc(proc,chn)*yieldsAll[histoPrefix+proc])**2
 					except:
 						if proc != 'qcd': print "Missing",proc,"for channel individual:",chn
@@ -1010,6 +1024,7 @@ for tag in taglist:
 						yieldtempE += yieldsAll[histoPrefixE+bkg]
 						yieldtemp += yieldsAll[histoPrefixE+bkg]
 						yieldEplusMtemp += yieldsAll[histoPrefixE+bkg]
+                                                yielderrtemp += (yieldsAll[histoPrefixE+bkg]*flatuncs[bkg])**2
 						yielderrtemp += yieldsErrsAll[histoPrefixE+bkg]**2
 						yielderrtemp += (getShapeSystUnc(bkg,chn)*yieldsAll[histoPrefixE+bkg])**2
 					except:
@@ -1019,6 +1034,7 @@ for tag in taglist:
 						yieldtempM += yieldsAll[histoPrefixM+bkg]
 						yieldtemp += yieldsAll[histoPrefixM+bkg]
 						yieldEplusMtemp += yieldsAll[histoPrefixM+bkg]
+                                                yielderrtemp += (yieldsAll[histoPrefixM+bkg]*flatuncs[bkg])**2
 						yielderrtemp += yieldsErrsAll[histoPrefixM+bkg]**2
 						yielderrtemp += (getShapeSystUnc(bkg,chn.replace('isE','isM'))*yieldsAll[histoPrefixM+bkg])**2
 					except:
@@ -1034,6 +1050,7 @@ for tag in taglist:
 				try:
 					yieldtempE += yieldsAll[histoPrefixE+proc]
 					yieldtemp  += yieldsAll[histoPrefixE+proc]
+                                        if proc in bkgProcList: yielderrtemp += (yieldsAll[histoPrefixE+proc]*flatuncs[proc])**2
 					yielderrtemp += yieldsErrsAll[histoPrefixE+proc]**2
 					yielderrtemp += (getShapeSystUnc(proc,chn)*yieldsAll[histoPrefixE+proc])**2
 				except:
@@ -1042,6 +1059,7 @@ for tag in taglist:
 				try:
 					yieldtempM += yieldsAll[histoPrefixM+proc]
 					yieldtemp  += yieldsAll[histoPrefixM+proc]
+                                        if proc in bkgProcList: yielderrtemp += (yieldsAll[histoPrefixM+proc]*flatuncs[proc])**2
 					yielderrtemp += yieldsErrsAll[histoPrefixM+proc]**2
 					yielderrtemp += (getShapeSystUnc(proc,chn.replace('isE','isM'))*yieldsAll[histoPrefixM+proc])**2
 				except:
@@ -1092,6 +1110,7 @@ for proc in bkgProcList+sigProcList:
 postFix = ''
 if addShapes: postFix+='_addShps'
 if not FullMu: postFix+='_BKGNORM'
+if addFlat: postFix+='_RateSys'
 if rebinCombine: out=open(templateDir+'/'+combinefile.replace('templates','yields').replace('.root','_rebinned_stat'+str(stat).replace('.','p'))+postFix+'.txt','w')
 else: out=open(templateDir+'/'+thetafile.replace('templates','yields').replace('.root','_rebinned_stat'+str(stat).replace('.','p'))+postFix+'.txt','w')
 
