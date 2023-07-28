@@ -50,7 +50,7 @@ def EOSlist_root_files(Dir):
             rootlist.append(item)
     return rootlist
 
-def readTreeNominal(sample,step1Dir):
+def readTreeNominal(sample,step1Dir,treename = 'Events'):
 	pathstring0 = sample+'_hadd.root'
 	pathstring1 = sample+'_1_hadd.root'
 	if not EOSpathExists(step1Dir[23:]+'/',pathstring0) and not EOSpathExists(step1Dir[23:]+'/',pathstring1): 
@@ -58,7 +58,7 @@ def readTreeNominal(sample,step1Dir):
 		os._exit(1)
 	rootfiles = EOSlist_root_files(step1Dir[23:])	
 
-	tChain = TChain('ljmet')
+	tChain = TChain(treename)
 	for i in range(0,len(rootfiles)):
 		if sample not in rootfiles[i]: continue
 		tChain.Add(rootfiles[i])
