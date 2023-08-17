@@ -51,24 +51,24 @@ def EOSlist_root_files(Dir):
     return rootlist
 
 def readTreeNominal(sample,step1Dir,treename = 'Events'):
-	pathstring0 = sample+'_hadd.root'
-	pathstring1 = sample+'_1_hadd.root'
-	if not EOSpathExists(step1Dir[23:]+'/',pathstring0) and not EOSpathExists(step1Dir[23:]+'/',pathstring1): 
-		print "Error: path does not exist! Aborting ... no",pathstring0,"nor",pathstring1
-		os._exit(1)
-	rootfiles = EOSlist_root_files(step1Dir[23:])	
-
-	tChain = TChain(treename)
-	for i in range(0,len(rootfiles)):
-		if sample not in rootfiles[i]: continue
-		tChain.Add(rootfiles[i])
-	return tChain 
+    #RDF_WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8_finalsel_0.root
+    pathstring0 = 'RDF_'+sample+'_finalsel_0.root'
+    if not EOSpathExists(step1Dir[23:]+'/',pathstring0): #and not EOSpathExists(step1Dir[23:]+'/',pathstring1): 
+        print "Error: path does not exist! Aborting ... no",pathstring0 #,"nor",pathstring1
+        os._exit(1)
+    rootfiles = EOSlist_root_files(step1Dir[23:])	
+        
+    tChain = TChain(treename)
+    for i in range(0,len(rootfiles)):
+        if sample not in rootfiles[i]: continue
+        tChain.Add(rootfiles[i])
+    return tChain 
 
 def readTreeShift(sample,shift,step1Dir):	
-	pathstring0 = sample+'_hadd.root'
-        pathstring1 = sample+'_1_hadd.root'
-        if not EOSpathExists(step1Dir[23:]+'/',pathstring0) and not EOSpathExists(step1Dir[23:]+'/',pathstring1):
-		print "Error: path does not exist! Aborting ... no",pathstring0,"nor",pathstring1
+	pathstring0 = 'RDF_'+sample+'_finalsel_0.root'
+        #pathstring1 = sample+'_1_hadd.root'
+        if not EOSpathExists(step1Dir[23:]+'/',pathstring0): #and not EOSpathExists(step1Dir[23:]+'/',pathstring1):
+		print "Error: path does not exist! Aborting ... no",pathstring0 #,"nor",pathstring1
 		os._exit(1)
 	rootfiles = EOSlist_root_files(step1Dir[23:])	
 
