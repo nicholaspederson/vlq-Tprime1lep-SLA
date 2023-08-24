@@ -27,28 +27,27 @@ def analyze(tTree,process,doAllSys,iPlot,plotDetails,category,region,isCategoriz
 	cut  = ''
 
         if 'CR' in region: # 'CR' or 'CRinc'  certain AK8 jets and low signal node
-		cut += ' && (NJetsAK8 >= '+str(cutList['nAK8Cut'])+') && (dnnAll_Tprime < dnnAll_WJets'+BBstr+' || dnnAll_Tprime < dnnAll_ttbar'+BBstr+')'
-		if 'TT' in region: cut += ' && (dnnAll_ttbar'+BBstr+' > dnnAll_WJets'+BBstr+')'
-		if 'WJ' in region: cut += ' && (dnnAll_ttbar'+BBstr+' <= dnnAll_WJets'+BBstr+')'                
+		cut += ' && NJets_forward == 0'
 	elif 'SR' in region: # 'SR'  certain AK8 jets, mass reco, high signal node
-		#cut += ' && (NJetsAK8 >= '+str(cutList['nAK8Cut'])+') && (Tprime2_'+algo+'_Mass > -1) && (dnnAll_Tprime >= '+str(cutList['dnnCut'])+')'
-                cut += ' && (NJetsAK8 >= '+str(cutList['nAK8Cut'])+') && (Tprime2_'+algo+'_Mass > -1) && (dnnAll_Tprime >= dnnAll_WJets'+BBstr+' && dnnAll_Tprime >= dnnAll_ttbar'+BBstr+')'
+                cut += ' && NJets_forward > 0'
 	elif 'PS' in region: # 'PS'  
-		cut += ' && (NJetsAK8 >= '+str(cutList['nAK8Cut'])+')'
-		if '0b' in region: cut += ' && (NJetsDeepFlavwithSF == 0)'
-		elif '1b' in region: cut += ' && (NJetsDeepFlavwithSF == 1)'
-		elif '2b' in region: cut += ' && (NJetsDeepFlavwithSF >= 2)'
+		cut += ''
+		if '0b' in region: cut += ' && (NJets_DeepFlavL == 0)'
+		elif '1b' in region: cut += ' && (NJets_DeepFlavL == 1)'
+		elif '2b' in region: cut += ' && (NJets_DeepFlavL >= 2)'
 
 	# Define weights
-	TrigEffElUp = '(triggSF+isElectron*triggSFUncert)'
-	TrigEffElDn = '(triggSF-isElectron*triggSFUncert)'
-        TrigEffMuUp='(triggSF+isMuon*triggSFUncert)'
-        TrigEffMuDn='(triggSF-isMuon*triggSFUncert)'
-	TrigEff = 'triggSF'
-        lepIdSF = 'lepIdSF'
-        lepIdSFUp = '(lepIdSF + elIdSFUnc)' # add-on is 0 for muons
-        lepIdSFDn = '(lepIdSF - elIdSFUnc)'
-
+	TrigEffElUp = '1'#(triggSF+isElectron*triggSFUncert)'
+	TrigEffElDn = '1'#(triggSF-isElectron*triggSFUncert)'
+        TrigEffMuUp='1'#(triggSF+isMuon*triggSFUncert)'
+        TrigEffMuDn='1'#(triggSF-isMuon*triggSFUncert)'
+	TrigEff = '1'#triggSF'
+        lepIdSF = '1'#lepIdSF'
+        lepIdSFUp = '1'#(lepIdSF + elIdSFUnc)' # add-on is 0 for muons
+        lepIdSFDn = '1'#(lepIdSF - elIdSFUnc)'
+        recoSF = '1'
+        isoSF = '1'
+        pileupWeight = '1'        
         
         ## FIXME add these two calcs to the analyzer
         topCorr = '1'
@@ -58,20 +57,17 @@ def analyze(tTree,process,doAllSys,iPlot,plotDetails,category,region,isCategoriz
         jetSFstrUp = '1'
         jetSFstrDn = '1'
 	if (process!='WJetsMG' and 'WJetsMG' in process):
-		jetSFstr = 'HTSF_Pol'
-		jetSFstrUp = 'HTSF_PolUp'
-		jetSFstrDn = 'HTSF_PolDn'
+		jetSFstr = '1'#HTSF_Pol'
+		jetSFstrUp = '1'#HTSF_PolUp'
+		jetSFstrDn = '1'#HTSF_PolDn'
         if 'TTJets' in process:
-                topCorr = 'HT_Corr'#'min(1.0,tpt_Corr)'#'topPtWeight13TeV'#
-                topCorrUp = 'HT_CorrUp'#'min(1.0,tpt_CorrUp)'#'1'#
-                topCorrDn = 'HT_CorrDn'#'min(1.0,tpt_CorrDn)'#'topPtWeight13TeV'#
+                topCorr = '1'#HT_Corr'#'min(1.0,tpt_Corr)'#'topPtWeight13TeV'#
+                topCorrUp = '1'#HT_CorrUp'#'min(1.0,tpt_CorrUp)'#'1'#
+                topCorrDn = '1'#HT_CorrDn'#'min(1.0,tpt_CorrDn)'#'topPtWeight13TeV'#
 
 	weightStr = '1'
 	if 'Data' not in process: 
-		if 'TTM' in process or 'BBM' in process:
-			weightStr          += ' * '+jetSFstr+' * '+TrigEff+' * pileupWeight * '+lepIdSF+' * EGammaGsfSF * isoSF * '+str(weight[process])+' * pdfWeights4LHC[0] * MCWeight'
-		else:
-			weightStr          += ' * '+jetSFstr+' * '+topCorr+' * '+TrigEff+' * pileupWeight * '+lepIdSF+' * EGammaGsfSF * isoSF * '+str(weight[process])+' * (MCWeight/abs(MCWeight))'
+                weightStr += ' * '+jetSFstr+' * '+topCorr+' * '+TrigEff+' * '+pileupWeight+' * '+lepIdSF+' * '+recoSF+' * '+isoSF+' * '+str(weight[process])+' * (genWeight/abs(genWeight))'
 
 		weightelIdSFUpStr  = weightStr.replace(lepIdSF,lepIdSFUp)
                 weightelIdSFDownStr= weightStr.replace(lepIdSF,lepIdSFDn)
@@ -79,14 +75,14 @@ def analyze(tTree,process,doAllSys,iPlot,plotDetails,category,region,isCategoriz
                 weightTrigEffElDownStr= weightStr.replace(TrigEff,TrigEffElDn)
 		weightTrigEffMuUpStr  = weightStr.replace(TrigEff,TrigEffMuUp)
 		weightTrigEffMuDownStr= weightStr.replace(TrigEff,TrigEffMuDn)
-		weightPileupUpStr   = weightStr.replace('pileupWeight','pileupWeightUp')
-		weightPileupDownStr = weightStr.replace('pileupWeight','pileupWeightDown')
-		weightmuRFcorrdUpStr   = 'renormWeights[5] * '+weightStr
-		weightmuRFcorrdDownStr = 'renormWeights[3] * '+weightStr
-		weightmuRUpStr      = 'renormWeights[4] * '+weightStr
-		weightmuRDownStr    = 'renormWeights[2] * '+weightStr
-		weightmuFUpStr      = 'renormWeights[1] * '+weightStr
-		weightmuFDownStr    = 'renormWeights[0] * '+weightStr
+		weightPileupUpStr   = weightStr.replace(pileupWeight,pileupWeight+'Up')
+		weightPileupDownStr = weightStr.replace(pileupWeight,pileupWeight+'Down')
+		weightmuRFcorrdUpStr   = 'LHEScaleWeight[8] * '+weightStr
+		weightmuRFcorrdDownStr = 'LHEScaleWeight[0] * '+weightStr
+		weightmuRUpStr      = 'LHEScaleWeight[7] * '+weightStr
+		weightmuRDownStr    = 'LHEScaleWeight[1] * '+weightStr
+		weightmuFUpStr      = 'LHEScaleWeight[5] * '+weightStr
+		weightmuFDownStr    = 'LHEScaleWeight[3] * '+weightStr
 		weighttopptUpStr    = weightStr.replace(topCorr,topCorrUp)
 		weighttopptDownStr  = weightStr.replace(topCorr,topCorrDn)
 		weightjsfUpStr      = weightStr.replace(jetSFstr,jetSFstrUp)
@@ -113,16 +109,12 @@ def analyze(tTree,process,doAllSys,iPlot,plotDetails,category,region,isCategoriz
 	# Design the tagging cuts for categories
 	tagCut = ''
 	if isCategorized:
-		if tag == 'taggedbWbW': tagCut += ' && taggedBWBW_'+algo+' == 1'
-		elif tag == 'taggedtHbW': tagCut += ' && taggedTHBW_'+algo+' == 1'
-		elif tag == 'taggedtZbW': tagCut += ' && taggedTZBW_'+algo+' == 1'
-		elif tag == 'taggedtHtH': tagCut += ' && taggedTHTH_'+algo+' == 1'
-		elif tag == 'taggedtZtH': tagCut += ' && taggedTZTH_'+algo+' == 1'
-		elif tag == 'taggedtZtZ': tagCut += ' && taggedTZTZ_'+algo+' == 1'
+		if tag == 'tagTjet': tagCut += ' && Bdecay_obs == 1'
+		elif tag == 'tagWjet': tagCut += ' && Bdecay_obs == 2'
+		elif tag == 'untagTlep': tagCut += ' && Bdecay_obs == 3'
+		elif tag == 'untagWlep': tagCut += ' && Bdecay_obs == 4'
 
 		# signal categories for basic tag counts
-		if 'ttbar' in tag: cut += ' && (dnnAll_ttbar'+BBstr+' > dnnAll_WJets'+BBstr+')'
-		if 'wjet' in tag: cut += ' && (dnnAll_ttbar'+BBstr+' <= dnnAll_WJets'+BBstr+')'
 
 		if '3W' in tag: tagCut += ' && nW_'+algo+' == 3'
 		elif '3pW' in tag: tagCut += ' && nW_'+algo+' >= 3'
@@ -138,8 +130,6 @@ def analyze(tTree,process,doAllSys,iPlot,plotDetails,category,region,isCategoriz
 		elif '1T' in tag: tagCut += ' && nT_'+algo+' == 1'
 		elif '1pT' in tag: tagCut += ' && nT_'+algo+' >= 1'
 		elif '2pT' in tag: tagCut += ' && nT_'+algo+' >= 2'
-		
-		if '1pJ' in tag: tagCut += ' && nJ_'+algo+' >= 1'
 	       	
 
 	fullcut = cut+isEMCut+tagCut
@@ -186,10 +176,7 @@ def analyze(tTree,process,doAllSys,iPlot,plotDetails,category,region,isCategoriz
 			hists[iPlot+'muRDown_'      +lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'muRDown_'      +lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
 			hists[iPlot+'muFUp_'        +lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'muFUp_'        +lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
 			hists[iPlot+'muFDown_'      +lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'muFDown_'      +lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
-                        if 'Bp' in process:
-                                for i in range(30): hists[iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
-                        else:
-                                for i in range(100): hists[iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
+                        for i in range(1,100): hists[iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process] = TH1D(iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
 	for key in hists.keys(): hists[key].Sumw2()
 
 	# DRAW histograms
@@ -229,9 +216,6 @@ def analyze(tTree,process,doAllSys,iPlot,plotDetails,category,region,isCategoriz
 			tTree[process].Draw(plotTreeName+' >> '+iPlot+'muRDown_'      +lumiStr+'fb_'+catStr+'_'+process, weightmuRDownStr+'*('+fullcut+')', 'GOFF')
 			tTree[process].Draw(plotTreeName+' >> '+iPlot+'muFUp_'        +lumiStr+'fb_'+catStr+'_'+process, weightmuFUpStr+'*('+fullcut+')', 'GOFF')
 			tTree[process].Draw(plotTreeName+' >> '+iPlot+'muFDown_'      +lumiStr+'fb_'+catStr+'_'+process, weightmuFDownStr+'*('+fullcut+')', 'GOFF')
-                        if 'Bp' in process:
-                                for i in range(30): tTree[process].Draw(plotTreeName+' >> '+iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process, '(pdfWeights4LHC['+str(i+1)+']/pdfWeights4LHC[0]) * '+weightStr+'*('+fullcut+')', 'GOFF')
-                        else:
-                                for i in range(100): tTree[process].Draw(plotTreeName+' >> '+iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process, '(pdfWeights['+str(i)+']) * '+weightStr+'*('+fullcut+')', 'GOFF')	
+                        for i in range(1,100): tTree[process].Draw(plotTreeName+' >> '+iPlot+'pdf'+str(i)+'_'+lumiStr+'fb_'+catStr+'_'+process, '(LHEPdfWeight['+str(i)+']) * '+weightStr+'*('+fullcut+')', 'GOFF')	
 	for key in hists.keys(): hists[key].SetDirectory(0)	
 	return hists
