@@ -21,7 +21,7 @@ for sample in samples_2018UL:
         integral += tree.genEventCount
         adjusted += tree.genEventSumw/sqrt(tree.genEventSumw2/tree.genEventCount)
 
-    print(sample.prefix+'.nrun = '+str(adjusted)+'. # from integral '+str(integral)+', file '+sample.prefix)
+    print(sample.prefix+'.nrun = '+str(adjusted)+' # from integral '+str(integral)+', file '+sample.prefix)
 
     #if 'Bp' in sample:
         # use the LHEScaleWeight and LHEPDFWeight to extract the SFs

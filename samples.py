@@ -5,7 +5,7 @@ import os
 # Sample Dictionaries: samples, samples_2016APVUL, samples_2016UL, samples_2017UL, samples_2018UL, samples_test, samples_QCD
 
 class sample:
-    def __init__(self, prefix, xsec. year, textlist, samplename): #, color
+    def __init__(self, prefix, xsec, year, textlist, samplename): #, color
         self.prefix = prefix
         self.year = year
         self.textlist = textlist
@@ -274,19 +274,19 @@ QCDHT20002018UL.nrun = 5374711.0 # from integral 5374711, file QCDHT20002018UL
 QCDHT2002018UL.nrun = 57336623.0 # from integral 57336623, file QCDHT2002018UL
 QCDHT3002018UL.nrun = 61609663.0 # from integral 61609663, file QCDHT3002018UL
 QCDHT5002018UL.nrun = 49184771.0 # from integral 49184771, file QCDHT5002018UL
-#QCDHT7002018UL.nrun = 0. # from integral 0, file QCDHT7002018UL
+QCDHT7002018UL.nrun = 48506751.0 # from integral 48506751, file QCDHT7002018UL
 STs2018UL.nrun = 12607741.0 # from integral 19365999, file STs2018UL
-#STt2018UL.nrun = 152764658.0 # from integral 163027000, file STt2018UL
+STt2018UL.nrun = 167111718.0 # from integral 178336000, file STt2018UL
 STtb2018UL.nrun = 90022642.0 # from integral 95627000, file STtb2018UL
 STtW2018UL.nrun = 7955614.0 # from integral 7956000, file STtW2018UL
 STtWb2018UL.nrun = 7748690.0 # from integral 7749000, file STtWb2018UL
 TTHB2018UL.nrun = 9467226.0 # from integral 9668000, file TTHB2018UL
-#TTHnonB2018UL.nrun = 6245369.0 # from integral 6377993, file TTHnonB2018UL
+TTHnonB2018UL.nrun = 7176599.0 # from integral 7328993, file TTHnonB2018UL
 TTMT10002018UL.nrun = 22396890.0 # from integral 23624506, file TTMT10002018UL
-#TTMT7002018UL.nrun = 0. # from integral 0, file TTMT7002018UL
+TTMT7002018UL.nrun = 30084128.0 # from integral 30653714, file TTMT7002018UL
 TTTo2L2Nu2018UL.nrun = 143848848.0 # from integral 145020000, file TTTo2L2Nu2018UL
-#TTToHadronic2018UL.nrun = 298993744.0 # from integral 301428000, file TTToHadronic2018UL
-#TTToSemiLeptonic2018UL.nrun = 376598560.0 # from integral 379668000, file TTToSemiLeptonic2018UL
+TTToHadronic2018UL.nrun = 314921616.0 # from integral 317486000, file TTToHadronic2018UL
+TTToSemiLeptonic2018UL.nrun = 472557630.0 # from integral 476408000, file TTToSemiLeptonic2018UL
 TTWl2018UL.nrun = 5666428.0 # from integral 10450000, file TTWl2018UL
 TTWq2018UL.nrun = 530327.0 # from integral 970179, file TTWq2018UL
 TTZM102018UL.nrun = 9651834.0 # from integral 19608000, file TTZM102018UL
@@ -297,7 +297,7 @@ WJetsHT25002018UL.nrun = 2097648.0 # from integral 2097648, file WJetsHT25002018
 WJetsHT4002018UL.nrun = 7444030.0 # from integral 7444030, file WJetsHT4002018UL
 WJetsHT6002018UL.nrun = 7718765.0 # from integral 7718765, file WJetsHT6002018UL
 WJetsHT8002018UL.nrun = 7306187.0 # from integral 7306187, file WJetsHT8002018UL
-WW2018UL.nrun = 15678982.0711. # from integral 15679000, file WW2018UL
+WW2018UL.nrun = 15678982.0711 # from integral 15679000, file WW2018UL
 WZ2018UL.nrun = 7940000.0 # from integral 7940000, file WZ2018UL
 ZZ2018UL.nrun = 3526000.0 # from integral 3526000, file ZZ2018UL
 
@@ -537,13 +537,6 @@ samples={
     "ZZ2016UL":ZZ2016UL,
     "ZZ2017UL":ZZ2017UL,
     "ZZ2018UL":ZZ2018UL,
-    "QCD200":QCD200,
-    "QCD300":QCD300,
-    "QCD500":QCD500,
-    "QCD700":QCD700,
-    "QCD1000":QCD1000,
-    "QCD1500":QCD1500,
-    "QCD2000":QCD2000,
 }
 
 samples_2016APVUL = {
@@ -812,12 +805,3 @@ samples_WJets = {
     "WJetsHT8002018UL":WJetsHT8002018UL,
 }
 
-samples_QCD = {
-    "QCD200":QCD200,
-    "QCD300":QCD300,
-    "QCD500":QCD500,
-    "QCD700":QCD700,
-    "QCD1000":QCD1000,
-    "QCD1500":QCD1500,
-    "QCD2000":QCD2000,
-}
