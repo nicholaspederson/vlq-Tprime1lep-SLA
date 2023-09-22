@@ -1,59 +1,45 @@
 #!/usr/bin/python
-
-
 import os,sys,time,math,datetime,pickle,itertools,getopt
 from ROOT import TH1D,gROOT,TFile,TTree
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
 from numpy import linspace
 
-from weights import *
+from samples import *
 from analyze import *
 from samples import *
 from utils import *
 
-
 gROOT.SetBatch(1)
 start_time = time.time()
 
-lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = 'root://cmseos.fnal.gov//store/user/escharni/FWLJMET102X_1lep2018_Nov2020_step1hadds'
+# ------------- File location and total lumi ---------------
 
+lumiStr = '138fb' #str(targetlumi/1000).replace('.','p') # 1/fb
+step1Dir = 'root://cmseos.fnal.gov//store/user/jmanagan/BtoTW_Sep2023_fullRun2/'
+
+# ------------- Arguments and default values ------------
 isatest = False
 if len(sys.argv) == 1: isatest = True
-
-iPlot = 'DnnTprime' #minMlb' #choose a discriminant from plotList below!
+iPlot = 'gcJet_HT' #choose a discriminant from plotList below!
 if len(sys.argv)>2: iPlot=sys.argv[2]
-region = 'CR'
+region = 'BAX'
 if len(sys.argv)>3: region=sys.argv[3]
 isCategorized = False
 if len(sys.argv)>4: isCategorized=int(sys.argv[4])
 
-if 'PS' not in region and 'CR2j' not in region: step1Dir = 'root://cmseos.fnal.gov//store/user/jmanagan/FWLJMET102X_1lep2018Dnn_Feb2021_step2haddsAll'
-
 doJetRwt= 1
-doTopRwt= 0
 doAllSys= True
 cTime=datetime.datetime.now()
 datestr='%i_%i_%i'%(cTime.year,cTime.month,cTime.day)
 timestr='%i_%i_%i'%(cTime.hour,cTime.minute,cTime.second)
 pfix='templatesTest'+region
 if not isCategorized: pfix='kinematicsTEST'+region
-#pfix+=iPlot
-#pfix+='_'+datestr#+'_'+timestr
 
-"""
-Note: 
---Each process in step1 (or step2) directories should have the root files hadded! 
---The code will look for <step1Dir>/<process>_hadd.root for nominal trees.
-The uncertainty shape shifted files will be taken from <step1Dir>/../<shape>/<process>_hadd.root,
-where <shape> is for example "JECUp". hadder.py can be used to prepare input files this way! 
---Each process given in the lists below must have a definition in "samples.py"
---Check the set of cuts in "analyze.py"
-"""
+# -------------- Groups of background samples to use --------------
 
+# CONVERT ME to gather up instances of the samples class (or make this list in the samples.py?)
 bkgList = [
-	#'DYMG200',,'WJetsMG200'
 	'DYMG400','DYMG600','DYMG800','DYMG1200','DYMG2500','WJetsMG400','WJetsMG600','WJetsMG800','WJetsMG1200','WJetsMG2500',
 	'TTJetsHad0','TTJetsHad700','TTJetsHad1000','TTJetsSemiLep0','TTJetsSemiLep700','TTJetsSemiLep1000','TTJets2L2nu0','TTJets2L2nu700','TTJets2L2nu1000',
 	'TTJetsPH700mtt','TTJetsPH1000mtt','Ts','Tbt','Tt','TtW','TbtW','TTWl','TTZl',
@@ -65,36 +51,23 @@ dataList = [
 	'DataMABCD',
 	]
 
-whichSignal = 'TT' #HTB, TT, BB, or X53X53
-massList = range(900,1800+1,100)
-sigList = [whichSignal+'M'+str(mass) for mass in massList]
-if whichSignal=='X53X53': sigList = [whichSignal+'M'+str(mass)+chiral for mass in massList for chiral in ['left','right']]
-if whichSignal=='TT': decays = ['BWBW','THTH','TZTZ','TZBW','THBW','TZTH'] #T' decays
-if whichSignal=='BB': decays = ['TWTW','BHBH','BZBZ','BZTW','BHTW','BZBH'] #B' decays
+massList = [800,1000,1200,1300,1400,1500,1600,1700,1800,2000,2200]
+sigList = ['Bprime_M'+str(mass) for mass in massList]
 
-cutList = {'lepPtCut':55,'metCut':50,'nAK8Cut':3,'dnnCut':0.50,'HTCut':510} ## also requires mass reco worked
-if 'CR' in region :cutList = {'lepPtCut':55,'metCut':50,'nAK8Cut':3,'dnnCut':0.50,'HTCut':510} 
-if 'PS' in region :cutList = {'lepPtCut':55,'metCut':50,'nAK8Cut':0,'dnnCut':0.0,'HTCut':510} ## most basic
-		
+# ------------- Parameters to divide up the histograms --------------
+
 if len(sys.argv)>5: isEMlist=[str(sys.argv[5])]
 else: isEMlist = ['E','M']
 if len(sys.argv)>6: taglist=[str(sys.argv[6])]
 else: 
 	taglist = ['all']
-	if isCategorized: taglist=['taggedbWbW','taggedtHbW','taggedtHtH','taggedtZbW','taggedtZtH','taggedtZtZ','taggedtZHtZH','notV']
-if len(sys.argv)>7: algolist=[str(sys.argv[7])]
-else: 
-	algolist = ['all']
-	if isCategorized or 'algos' in region: algolist = ['DeepAK8']
+	if isCategorized: taglist=['taggedbWbW','taggedtHbW','taggedtHtH','taggedtZbW','taggedtZtH','taggedtZtZ','taggedtZHtZH','notV'] #FIXME
 
-#bigbins = [0,50,100,150,200,250,300,350,400,450,500,600,700,800,1000,1200,1500]
-bigbins = [0,50,100,125,150,175,200,225,250,275,300,325,350,375,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2500,3000,3500,4000,5000]
+# ------------- Definition of plots to make ------------------
 
 nbins = 51
-xmax = 800
-if isCategorized or 'TR' in region: 
-	nbins = 501
-	xmax = 1000
+if isCategorized: 
+	nbins = 101
 
 plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
         'tmass':('t_mass',linspace(0,500,nbins).tolist(),';M(t) [GeV]'),
@@ -268,6 +241,7 @@ for cat in catList:
 
 	print 'Running analyze'
  	for data in dataList: 
+                #RDF_SingleMuonH_2016_75.root -- first arg of readTrees needs to give the SingleMuonH, 2nd is sample.year
 		print '-------------------------'
 		tTreeData[data]=readTreeNominal(samples[data],step1Dir) ## located in utils.py
  		if not isatest: datahists.update(analyze(tTreeData,data,cutList,False,doJetRwt,iPlot,plotList[iPlot],category,region,isCategorized,whichSignal))
@@ -275,6 +249,7 @@ for cat in catList:
 			print 'deleting',data
 			del tTreeData[data]
  	for bkg in bkgList: 
+                #RDF_TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8_2016APV_0.root -- first arg gives TTTo...pythia8, 2nd is sample.year
 		print '-------------------------'
 		tTreeBkg[bkg]=readTreeNominal(samples[bkg],step1Dir)
 		if doAllSys:
