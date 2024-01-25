@@ -1,18 +1,18 @@
 import os,sys
 from ROOT import TFile, TH1
-from samples import *
+from samples import sample, mclist_2016APV, mclist_2016, mclist_2017, mclist_2018
 from utils import *
 from math import sqrt
 
 ## something about samples goes here
 
-for sample in samples_2018UL:
+for sample in mclist_2016APV:
     #print('-------------------------------------------------------')
     
     samplename = sample.samplename.split('/')[1]
 
-    step1dir = 'root://cmseos.fnal.gov//store/user/jmanagan/BtoTW_Aug2023_2018/'
-    tree = readTreeNominal(samplename,step1dir,"Runs")
+    step1dir = 'root://cmseos.fnal.gov//store/user/jmanagan/BtoTW_Oct2023_fullRun2/'
+    tree = readTreeNominal(samplename,"2016APV",step1dir,"Runs")
 
     integral = 0
     adjusted = 0
