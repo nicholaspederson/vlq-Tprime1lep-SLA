@@ -8,12 +8,11 @@ region=$3
 isCategorized=$4
 isEM=$5
 tag=$6
-algo=$7
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
-scramv1 project CMSSW CMSSW_10_2_10
-cd CMSSW_10_2_10
+scramv1 project CMSSW CMSSW_12_4_8
+cd CMSSW_12_4_8
 eval `scramv1 runtime -sh`
 cd -
 
-python -u doHists.py $outDir $iPlot $region $isCategorized $isEM $tag $algo
+python3 -u doHists.py $outDir $iPlot $region $isCategorized $isEM $tag
