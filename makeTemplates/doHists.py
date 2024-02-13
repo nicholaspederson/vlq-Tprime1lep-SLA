@@ -38,6 +38,9 @@ print('Set pfix to '+pfix)
 # this is a list of group dictionaries. "wjets" has entries like "WJetsHT2002018":WJetsHT2002018, where the 2nd is the class
 bkgList = [samples_electroweak,samples_wjets,samples_ttbar,samples_singletop,samples_ttbarx,samples_qcd]
 
+### TO-DO: in samples.py, make up an entry for each year for ABCDnn with dummy information where needed.
+### When iPlot == a transform variable, bkgList = [samples_electroweak,samples_ttbarx,samples_abcdnn] (singletop?)
+
 # use "samples_data" and "samples_signal" below for the dictionaries of data and signals
 
 # ------------- Parameters to divide up the histograms --------------
@@ -169,15 +172,22 @@ for cat in catList:
                 print('------------ '+data+' -------------')
                 fileprefix = (samples_data[data].samplename).split('/')[1]+((samples_data[data].samplename).split('/')[2])[7]
                 tTreeData[data]=readTreeNominal(fileprefix,samples_data[data].year,step1Dir) ## located in utils.py
+
+                ### For analyze_RDF make the switch here (and similar regions below)
+                ### Could "datahists" now be "updated" with more histptrs instead of hists? 
                 datahists.update(analyze(tTreeData,samples_data[data],False,iPlot,plotList[iPlot],category,region,isCategorized))
                 if catInd==nCats: 
                         print('deleting '+data)
-                        del tTreeData[data]
+                        del tTreeData[data]  
 
-        for data in datahists.keys(): overflow(datahists[data])
+        ### this function puts overflow into the last column -- in utils? Works on histptrs? If not, do this later?
+        for data in datahists.keys(): overflow(datahists[data]) 
+
+        ### store the dictionary of hists in a pickle file. Change this to open output ROOT, loop and .Write histptrs?
         pickle.dump(datahists,open(outDir+'/datahists_'+iPlot+'.p','wb'))
         del datahists
 
+        ### Now we begin the same general process but for simulated backgrounds
         igrp = 0
         for bkgGrp in bkgList: 
                 bkghists  = {}

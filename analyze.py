@@ -47,6 +47,10 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
         if 'Single' not in sample.prefix: #  # messed up abseta in analyzer! Put back next time 
                 weightStr += ' * '+jetSFstr+' * '+topCorr+' * PileupWeights[0] * leptonIDSF[0] * leptonRecoSF[0] * leptonIsoSF[0] * leptonHLTSF[0] * btagWeights[17] *'+str(targetlumi[sample.year]*sample.xsec/sample.nrun)+' * (genWeight/abs(genWeight))'
 
+                ### TO-DO: when iPlot == transform variable, check that "samples_abcdnn" gets the right weights
+                ### at minimum, sample.xsec/sample.nrun becomes the extendedABCD branch name instream (maybe also the *lumi?)
+                ### presumably other experimental weights go away, and an uncertainty weight would be added for peak and tail shifts
+
                 weightelRecoSFUpStr  = weightStr.replace('leptonRecoSF[0]','(isMu*leptonRecoSF[0]+isEl*leptonRecoSF[1])')
                 weightelRecoSFDnStr= weightStr.replace('leptonRecoSF[0]','(isMu*leptonRecoSF[0]+isEl*leptonRecoSF[2])')
                 weightmuRecoSFUpStr  = weightStr.replace('leptonRecoSF[0]','(isMu*leptonRecoSF[1]+isEl*leptonRecoSF[0])')
@@ -73,6 +77,7 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
                 weightBtagLFCODnStr   = weightStr.replace('btagWeights[17]','btagWeights[23]')
                 weightBtagLFUCUpStr   = weightStr.replace('btagWeights[17]','btagWeights[24]')
                 weightBtagLFUCDnStr   = weightStr.replace('btagWeights[17]','btagWeights[25]')
+                ### These weights are here in case we go back to btag shape-reweighting SFs
                 # weightBtagHFUpStr   = weightStr.replace('btagWeights[0]','btagWeights[1]')
                 # weightBtagHFDnStr   = weightStr.replace('btagWeights[0]','btagWeights[2]')
                 # weightBtagLFUpStr   = weightStr.replace('btagWeights[0]','btagWeights[3]')
@@ -237,6 +242,7 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
                         hists[iPlot+'jecUp_'+lumiStr+'_'+catStr+'_'+process]  = TH1D(iPlot+'jecUp_'+lumiStr+'_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
                         hists[iPlot+'jecDn_'+lumiStr+'_'+catStr+'_'+process]  = TH1D(iPlot+'jecDn_'+lumiStr+'_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
 
+                ### These are commented because the drawing is sooooooo sllllooooooowwwwww
                 # if isCategorized:
                 #         if process+'jerUp' in tTree: 
                 #                 hists[iPlot+'jerUp_'+lumiStr+'_'+catStr+'_'+process]  = TH1D(iPlot+'jerUp_'+lumiStr+'_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
@@ -285,6 +291,7 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
                 #         hists[iPlot+'muRDn_'+lumiStr+'_'+catStr+'_'+process] = TH1D(iPlot+'muRDn_'+lumiStr+'_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
                 #         hists[iPlot+'muFUp_'+lumiStr+'_'+catStr+'_'+process] = TH1D(iPlot+'muFUp_'+lumiStr+'_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
                 #         hists[iPlot+'muFDn_'+lumiStr+'_'+catStr+'_'+process] = TH1D(iPlot+'muFDn_'+lumiStr+'_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
+                ### TO-DO: check how many PDF variations live in NanoAOD, find branch names and get this segment set up correctly                        
                 #         # for i in range(1,30): 
                 #         #         hists[iPlot+'pdf'+str(i)+'_'+lumiStr+'_'+catStr+'_'+process] = TH1D(iPlot+'pdf'+str(i)+'_'+lumiStr+'_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
         for key in hists.keys(): 
@@ -304,6 +311,7 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
                         tTree[process+'jecUp'].Draw(plotTreeName+' >> '+iPlot+'jecUp_'+lumiStr+'_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
                         tTree[process+'jecDn'].Draw(plotTreeName+' >> '+iPlot+'jecDn_'+lumiStr+'_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
 
+                ### These are commented because the drawing is sooooooo sllllooooooowwwwww
                 # if isCategorized:
                 #         if process+'jerUp' in tTree:
                 #                 tTree[process+'jerUp'].Draw(plotTreeName+' >> '+iPlot+'jerUp_'+lumiStr+'_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
@@ -352,6 +360,7 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
                 #         tTree[process].Draw(plotTreeName+' >> '+iPlot+'muRDn_'     +lumiStr+'_'+catStr+'_'+process, weightmuRDnStr+'*('+fullcut+')', 'GOFF')
                 #         tTree[process].Draw(plotTreeName+' >> '+iPlot+'muFUp_'     +lumiStr+'_'+catStr+'_'+process, weightmuFUpStr+'*('+fullcut+')', 'GOFF')
                 #         tTree[process].Draw(plotTreeName+' >> '+iPlot+'muFDn_'     +lumiStr+'_'+catStr+'_'+process, weightmuFDnStr+'*('+fullcut+')', 'GOFF')
+                ### TO-DO: check how many PDF variations live in NanoAOD, find branch names and get this segment set up correctly
                 #         # for i in range(1,30): 
                 #         #         tTree[process].Draw(plotTreeName+' >> '+iPlot+'pdf'+str(i)+'_'+lumiStr+'_'+catStr+'_'+process, '(LHEPdfWeight['+str(i)+']) * '+weightStr+'*('+fullcut+')','GOFF')	
         for key in hists.keys(): hists[key].SetDirectory(0)	
