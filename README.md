@@ -49,72 +49,68 @@ There are currently 2 versions:
 
 ## Making plots in `makeTemplates`
 
-The following content is old and in the process of being updated, but the general flow is accurate
+**Note: files in the repository that were last updated > 1 year ago can be safely ignored for now**
 
------------------------------------------------------------------------------------------------
+Scripts in this folder are used to **make ROOT files of nice histograms for Combine** and to **make plot images**.
 
+### Common script features:
 
-makeTemplates: plot kinematic distributions and templates for limits 
+Most of the scripts include the following definitions. Yes, we could probably try to define these once somewhere else...
 
-	-- Categories: anything you define! see isEMlist, catList, tagList objects. Typically E/M/L for basic kinematics, more specific categories for limit templates.
+* `isEMlist`: string list like ['E','M'] for electron and muon, or 'L' for combined leptons
+* `taglist`: string list of categories, like ['tjet','wjet',...]. Default is 'all' if the histograms weren't categorized
+  * `isCategorized`: flag for whether or not to expect different tags in the histogram names
+* `region`: string describing the cuts in a histogram, like 'all' or 'D' or 'B', etc
+
+### Preparing to make histograms
+
+1. Check samples.py --> if the input RDF files are new, do the sample counts need updating?
+
+2. Check analyze.py (or the RDF version) --> do you want to change any cuts, weights, or uncertainty histograms?
+
+3. Check doHists.py --> is the input file EOS path correct? Do you want to add any new plot definition? Do you need to change the settings for running uncertainties? Do you need to change the sample list to process?
+
+4. Test doHists.py to see that it doesn't crash: `python3 -u doHists.py`   (you can kill this test once it gets through 1 or 2 MC samples)
+
+5. Edit doCondorTemplates.py:
+   * Define a "pfix" label for this set of plots
+   * Define the region and turn of/off isCategorized
+   * Comment/uncomment to get the right list of plots
+
+### Running condor jobs for histograms
+
+On the LPC:
+
+```
+voms-proxy-init -voms cms -valid 168:00
+
+cd CMSSW_12_4_8/src/vlq-BtoTW-SLA/makeTemplates/
+python -u doCondorTemplates.py
+```
+
+Check status with `condor_q` and similar commands. The output files, including condor log/err/out files will go to `makeTemplates/kinematicsREGION_YOURPFIX/LEPTON_all/`. If you chose to make categorized plots, the path will look like `makeTemplates/templatesREGION_YOURPFIX/LEPTON_TAG/`.
+
+### Making ROOT files and tables
+
+1. Edit doTemplates.py to set the region and prefix to match a set of plots. You can also control the samples and uncertainties that are processed (e.g. you can ignore some samples or uncertainties that were created in the condor job). This script converts pickle files to ROOT files and write a latex-formatted yield table.
+
+2. Edit modifyBinning.py (**Note: not updated yet for BtoTW**) to control binning and add certain uncertainties. This script is important for uncertainties that are defined based on looking at the final bin contents of some histogram and doing operations on them -- notably PDF and Scale uncertainties. Edit runRebinning.sh to rebin multiple plots
+
+3. python3 -u doTemplates.py
+
+(4. sh runRebinning.sh) Later, when it's ready. Historically, the output of modifyBinning.py has been the set of ROOT files used for the Higgs Combine limit setting tool.
+
+### Making plot images
+
+1. Edit plotTemplates.py for all plot-level controls, including systematic uncertainties. Edit runPlotting.sh for multiple plots.
 	
-	-- Regions: define "PS", "CR", "SR" cuts, or make new regions. Passed to analyze.py to control cuts
+2. sh runPlotting.sh
 
-	-- One job per category, giving one distribution
-	
-	PREP:
+## Setting limits in `combineLimits`
 
-	1. Edit weights.py and samples.py to define files/counts/xsecs
+Write me!
 
-	2. Edit analyze.py to control TTree->Draw cuts/weights/hists. Teach it how to interpret your regions and categories.
+## Plotting individual uncertainty effects in `plotShapeShifts`
 
-	3. Edit doHists.py to control histogram names/bins/labels, samples to run, and files to read in
+Write me!
 
-	4. Edit doCondorTemplates.py to control output directory, categories, and cuts. 
-
-	RUN:
-
-	1. python -u doHists.py --> this is a test, does it crash?
-
-	2. python -u doCondorTemplates.py
-
-	PLOT:
-
-	1. Edit doTemplates.py to control samples and uncertainties. This script converts pickle files to ROOT files and write a latex-formatted yield table. You can choose to do a branching ratio scan here.
-
-	2. Edit modifyBinning.py to control binning and add certain uncertainties. Edit runRebinning.sh to rebin multiple plots
-
-	3. python -u doTemplates.py
-
-	4. sh runRebinning.sh
-
-	5. Edit plotTemplates.py for all plot-level controls, including systematic uncertainties. Edit runPlotting.sh for multiple plots.
-	
-	6. sh runPlotting.sh
-
------------------------------------------------------------------------------------------------
-
-Uncertainties: various special scripts to treat them
-
-	-- makeTemplates/getCRUncerts.py: Given 3 yield files (templates, ttbar CR, wjets CR), this script returns flat uncertainties based on control regions corresponding to signal region categories.
-
-	-- plotShapeShifts: creates plots of each individual shape uncertainty for cross checks
-
------------------------------------------------------------------------------------------------
-
-makeLimits: set limits
-
-	Prep:
-
-	1. Set up theta_config_template(_*).py of your choice with your uncertainties
-
-	2. Set up doThetaLimits.py with directories and an types of histograms to remove from the file
-
-	RUN:
-
-	1. python -u doThetaLimits.py
-
-	PLOT:
-
-	1. python -u PlotLimits.py
-	
