@@ -1,12 +1,13 @@
 #!/usr/bin/python
-from ROOT import TH1D,TTree,TFile,RDataFrame
+from ROOT import TH1D,TTree,TFile,RDataFrame,TH1,EnableImplicitMT
 from array import array
 from numpy import linspace
 from weights import *
 from dnnJcorrSF import *
 import math,time
 
-ROOT.EnableImplicitMT()
+TH1.SetDefaultSumw2(True)
+EnableImplicitMT()
 
 """
 --This function will make kinematic plots for a given distribution for electron, muon channels and their combination
@@ -325,7 +326,6 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
         ### The "SetDirectory(0)" was needed so that the file could be closed without losing histogram contents. Can it be called on the histptr? Is it needed? 
         for key in histptrs.keys():
                 hists[key] = histptrs[key].GetValue()
-                hists[key].Sumw2()
                 hists[key].SetDirectory(0)
 
         print("--- Analyze: %s minutes ---" % (round((time.time() - start_time)/60,2)))

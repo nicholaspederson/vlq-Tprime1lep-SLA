@@ -1,9 +1,11 @@
 #!/usr/bin/python
-from ROOT import TH1D,TTree,TFile
+from ROOT import TH1D,TTree,TFile,TH1
 from array import array
 from numpy import linspace
 from samples import targetlumi, lumiStr
 import math, time
+
+TH1.SetDefaultSumw2(True)
 
 """
 --This function will make kinematic plots for a given distribution for electron, muon channels and their combination
@@ -294,8 +296,6 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
                 ### TO-DO: check how many PDF variations live in NanoAOD, find branch names and get this segment set up correctly                        
                 #         # for i in range(1,30): 
                 #         #         hists[iPlot+'pdf'+str(i)+'_'+lumiStr+'_'+catStr+'_'+process] = TH1D(iPlot+'pdf'+str(i)+'_'+lumiStr+'_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
-        for key in hists.keys(): 
-                hists[key].Sumw2()
 
 	# DRAW histograms
         tTree[process].Draw(plotTreeName+' >> '+iPlot+''+'_'+lumiStr+'_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
