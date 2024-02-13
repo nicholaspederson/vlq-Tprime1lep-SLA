@@ -33,6 +33,8 @@ The scripts in the top-level folder and generically useful and are often importe
    * Customize the year (use search-replace, it appears twice)
    * Run the script with `python3`
    * the output is formatted so that it can be pasted into `samples.py` to set the `nrun` value for the datasets that you queried
+* `dumpMuPDFfactors.py`: a script to analyze signal with NO SELECTION APPLIED in order to find out the "raw" or "original" uncertainty from generator scale and factorization weights.
+   * TO-DO: update this for NanoAOD inputs! 
 
 The most important script in the top-level folder is `analyze.py`. This is the master script that creates histograms by applying cuts and weights to a branch in the input ROOT file. 
 There are currently 2 versions: 
