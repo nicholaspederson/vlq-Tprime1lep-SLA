@@ -273,14 +273,6 @@ def analyze(tTree,sample,doAllSys,iPlot,plotDetails,category,region,isCategorize
                         print 'No dataframe built!!'
                         return hists
 
-        ## TO-DO: make new df from tree process+'jecUp' and make one hist with weightStr
-
-        # Plan: make a dictionary of names and weight strings. Loop over the dict and do hist = sel.Define('weight').Histo1D('stuff') for each
-        # During the loop store the TResultPtr to a dict 
-        # Then loop over the TResultPtr dict and do .GetValue()
-        #histo = df_tag.Histo1D((iPlot+'_'+sample+'_'+tag, ';'+plotList[iPlot][-1]+';Events / bin',len(plotList[iPlot][1])-1,array('d',plotList[iPlot][1])),plotList[iPlot][0],"weight")
-        #.Define("weight","Generator_weight*{}*{}/({}*abs(Generator_weight))".format(lumi,xsec[sample],nRun[sample]))
-        
         histptrs[iPlot+'_'+lumicatproc] = sel.Histo1D((iPlot+'_'+lumicatproc,xAxisLabel,len(xbins)-1,xbins),plotTreeName,'weight')
         if doAllSys and 'Single' not in process:
 		histptrs[iPlot+'elIdSFUp_'     +lumicatproc] = selMC.Histo1D((iPlot+'elIdSFUp_'     +lumicatproc,xAxisLabel,len(xbins)-1,xbins),plotTreeName,'weightelIdSFUp'     )
