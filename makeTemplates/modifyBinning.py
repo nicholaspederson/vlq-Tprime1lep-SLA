@@ -261,6 +261,7 @@ for rfile in rfiles:
                         newMuRFNameBase = 'muRFcorrdNew'
                         if 'qcd__' in hist: newMuRFName = newMuRFNameBase+'QCD'
                         if 'ewk__' in hist: newMuRFName = newMuRFNameBase+'EWK'
+                        if 'wjets__' in hist: newMuRFName = newMuRFNameBase+'WJT'
                         if 'ttbar__' in hist: newMuRFName = newMuRFNameBase+'TT'
                         if 'singletop__' in hist: newMuRFName = newMuRFNameBase+'ST'
                         if 'ttx__' in hist: newMuRFName = newMuRFNameBase+'TTX'
@@ -287,8 +288,8 @@ for rfile in rfiles:
                         if ('__'+sigName in hist and '__mu' in hist and normalizeRENORM): #normalize the renorm/fact shapes to nominal
                                 signame = hist.split('__')[1]
                                 if sigName not in signame: print("DIDNT GET SIGNAME "+signame)
-                                scalefactorUp = muSFsUp[signame]
-                                scalefactorDn = muSFsDn[signame]
+                                #scalefactorUp = muSFsUp[signame]
+                                #scalefactorDn = muSFsDn[signame]
                                 #muRFcorrdNewUpHist.Scale(scalefactorUp) #drop down .7   ### FIXME, NEED THIS FOR BPRIME
                                 #muRFcorrdNewDnHist.Scale(scalefactorDn) #raise up 1.3
                                 renormNomHist = tfiles[iRfile].Get(hist[:hist.find('__mu')]).Clone()
