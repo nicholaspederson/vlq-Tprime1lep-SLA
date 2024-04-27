@@ -10,7 +10,7 @@ from utils import *
 gROOT.SetBatch(1)
 start_time = time.time()
 
-region='BAX' # BAX, DCY, individuals, or all
+region='X' # BAX, DCY, individuals, or all
 if len(sys.argv)>1: region = str(sys.argv[1])
 
 isCategorized=True
@@ -153,6 +153,7 @@ plotList = ['BpMass',
 if groupHists:
         outHistFile = TFile.Open(f'{outDir}templates_{iPlot}_{lumiStr}.root', "RECREATE")
         for cat in catList:
+                print("PROGRESS: "+cat)
                 histoPrefix = f'{iPlot}_{lumiStr}_{cat}_{region}'
                 dataHistFile = TFile.Open(f'{outDir}{cat[2:]}/datahists_{iPlot}.root', "READ")
                 isFirstHist = True
@@ -170,7 +171,7 @@ if groupHists:
                 for proc in bkgProcs:
                         # DID NOT IMPLEMENT REMOVETHRESHOLD
                         bkgHistFile = TFile.Open(f'{outDir}{cat[2:]}/bkghists_{proc}_{iPlot}.root', "READ")
-                        print(f'{outDir}{cat[2:]}/bkghists_{proc}_{iPlot}.root')
+                        #print(f'{outDir}{cat[2:]}/bkghists_{proc}_{iPlot}.root')
                         bkgGrp = bkgProcs[proc]
                         systHists = {}
                         isFirstHist = True
@@ -182,25 +183,25 @@ if groupHists:
 
                         for bkg in bkgGrp:
                                 if 'QCDHT300' in bkg:
-                                        print("Plotting without QCDHT300.")
+                                        #print("Plotting without QCDHT300.")
                                         continue
                                 if isFirstHist:
                                         hists = bkgHistFile.Get(histoPrefix+'_'+bkgGrp[bkg].prefix).Clone(histoPrefix+'__'+proc)
                                         isFirstHist = False
                                         if doAllSys:
                                                 for syst in systematicList:
-                                                        print(f'{histoPrefix}_{syst}Up_{bkgGrp[bkg].prefix}')
+                                                        #print(f'{histoPrefix}_{syst}Up_{bkgGrp[bkg].prefix}')
                                                         systHists[f'{histoPrefix}__{proc}__{syst}__Up'] = bkgHistFile.Get(f'{histoPrefix}_{syst}Up_{bkgGrp[bkg].prefix}').Clone(f'{histoPrefix}__{proc}__{syst}__Up')
-                                                        systHists[f'{histoPrefix}__{proc}__{syst}__Dn'] = bkgHistFile.Get(f'{histoPrefix}_{syst}Dn_{bkgGrp[bkg].prefix}').Clone(f'{histoPrefix}__{proc}__{syst}__Dn')
+                                                        systHists[f'{histoPrefix}__{proc}__{syst}__Down'] = bkgHistFile.Get(f'{histoPrefix}_{syst}Dn_{bkgGrp[bkg].prefix}').Clone(f'{histoPrefix}__{proc}__{syst}__Down')
                                 else:
                                         #print(bkgHistFile.Get(histoPrefix+'_'+bkgGrp[bkg].prefix))
                                         hists.Add(bkgHistFile.Get(histoPrefix+'_'+bkgGrp[bkg].prefix))
                                         if doAllSys:
                                                 for syst in systematicList:
-                                                        print(f'{histoPrefix}_{syst}Up_{bkgGrp[bkg].prefix}')
+                                                        #print(f'{histoPrefix}_{syst}Up_{bkgGrp[bkg].prefix}')
                                                         try:
                                                                 systHists[f'{histoPrefix}__{proc}__{syst}__Up'].Add(bkgHistFile.Get(f'{histoPrefix}_{syst}Up_{bkgGrp[bkg].prefix}').Clone(f'{histoPrefix}__{proc}__{syst}__Up'))
-                                                                systHists[f'{histoPrefix}__{proc}__{syst}__Dn'].Add(bkgHistFile.Get(f'{histoPrefix}_{syst}Dn_{bkgGrp[bkg].prefix}').Clone(f'{histoPrefix}__{proc}__{syst}__Dn'))
+                                                                systHists[f'{histoPrefix}__{proc}__{syst}__Down'].Add(bkgHistFile.Get(f'{histoPrefix}_{syst}Dn_{bkgGrp[bkg].prefix}').Clone(f'{histoPrefix}__{proc}__{syst}__Down'))
                                                         except:
                                                                 print('could not process '+syst+' for '+bkg)
 

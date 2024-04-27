@@ -7,7 +7,8 @@ import os
 targetlumi = {'2016APV':19500, '2016':16800, '2017':41480, '2018':59830}
 lumiStr = '138fbfb' #str(targetlumi/1000).replace('.','p') # 1/fb
 systListShort = ['toppt','muRFcorrd','jec','btagHFCO']
-systListFull = ['toppt','muRFcorrd','jec','elIdSF','muIdSF','trigeffEl','trigeffMu','pileup','elIsoSF','muIsoSF','elRecoSF','muRecoSF','muR','muF'] #'jsf','btagLF','btagHFS1','btagHFS2','btagLFS1','btagLFS2','btagCFE1','btagCFE2','jer','btagHF',
+systListFull = ['elRecoSF', 'elIdSF', 'elIsoSF', 'TrigEffEl', 'muRecoSF', 'muIdSF', 'muIsoSF', 'TrigEffMu', 'Pileup', 'Prefire', 'jsf', 'toppt', 'muRFcorrd', 'muR', 'muF', 'btagHFCO', 'btagHFUC', 'btagLFCO', 'btagLFUC', 'jer', 'jec'] 
+systListABCDnn = ['peak', 'tail', 'closure']
 
 class sample:
     def __init__(self, prefix, xsec, year, textlist, samplename): #, color
@@ -669,6 +670,29 @@ for isamp in samples_wjets.keys():
     elif 'WJetsHT400' in isamp: samples_wjets[isamp].kfactor = 0.928054
     elif 'WJetsHT200' in isamp: samples_wjets[isamp].kfactor = 0.978569
 
+samples_ttbar_abcdnn = {
+    "TTMT10002016APV":TTMT10002016APV,
+    "TTMT10002016":TTMT10002016,
+    "TTMT10002017":TTMT10002017,
+    "TTMT10002018":TTMT10002018,
+    "TTMT7002016APV":TTMT7002016APV,
+    "TTMT7002016":TTMT7002016,
+    "TTMT7002017":TTMT7002017,
+    "TTMT7002018":TTMT7002018,
+    "TTTo2L2Nu2016APV":TTTo2L2Nu2016APV,
+    "TTTo2L2Nu2016":TTTo2L2Nu2016,
+    "TTTo2L2Nu2017":TTTo2L2Nu2017,
+    "TTTo2L2Nu2018":TTTo2L2Nu2018,
+    "TTToHadronic2016APV":TTToHadronic2016APV,
+    "TTToHadronic2016":TTToHadronic2016,
+    "TTToHadronic2017":TTToHadronic2017,
+    "TTToHadronic2018":TTToHadronic2018,
+    "TTToSemiLeptonic2016APV":TTToSemiLeptonic2016APV,
+    "TTToSemiLeptonic2016":TTToSemiLeptonic2016,
+    "TTToSemiLeptonic2017":TTToSemiLeptonic2017,
+    "TTToSemiLeptonic2018":TTToSemiLeptonic2018,
+}
+
 samples_ttbar = {
     "TTMT10002016APV":TTMT10002016APV,
     "TTMT10002016":TTMT10002016,
@@ -772,10 +796,10 @@ samples_qcd = {
     "QCDHT20002016":QCDHT20002016,
     "QCDHT20002017":QCDHT20002017,
     "QCDHT20002018":QCDHT20002018,
-    "QCDHT2002016APV":QCDHT2002016APV,
-    "QCDHT2002016":QCDHT2002016,
-    "QCDHT2002017":QCDHT2002017,
-    "QCDHT2002018":QCDHT2002018,
+#    "QCDHT2002016APV":QCDHT2002016APV,
+#    "QCDHT2002016":QCDHT2002016,
+#    "QCDHT2002017":QCDHT2002017,
+#    "QCDHT2002018":QCDHT2002018,
     "QCDHT3002016APV":QCDHT3002016APV,
     "QCDHT3002016":QCDHT3002016,
     "QCDHT3002017":QCDHT3002017,
