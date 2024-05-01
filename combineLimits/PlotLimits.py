@@ -55,12 +55,16 @@ exp95L=array('d',[0 for i in range(len(mass))])
 xsec = array('d',[multiplier for i in range(len(mass))])
 # https://github.com/CrossSectionsLHC/TopPartners_SingleProduction/blob/master/interpreted_tables/sigma_B_Bbj.csv
 theory_mass = array('d', [800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000])
+
+# From Xanda, for "singlet" B prod with a b quark, for 1% width, for 50% tW
 theory_xsec = [0.1187124, 0.0640113, 0.0362987, 0.0215009, 0.0131348, 0.0082629, 0.0053213, 0.0035078, 0.0022829, 0.0014947, 0.0009898, 0.0006519, 0.0004499]
+
 theoryDn = [0.0942576, 0.0505049, 0.0284212, 0.0167492, 0.0101664, 0.0063624, 0.0040814, 0.0026765, 0.0017327, 0.0011300, 0.0007453, 0.0004890, 0.0003361]
 theoryUp = [0.1530202, 0.0832147, 0.0475501, 0.0283811, 0.0174562, 0.0110475, 0.0071518, 0.0047426, 0.0031047, 0.0020418, 0.0013590, 0.0008990, 0.0006236]
 theory_xsec_dn = [2*(a-b) for a,b in zip(theory_xsec,theoryDn)]
 theory_xsec_up = [2*(a-b) for a,b in zip(theoryUp,theory_xsec)]
-theory_xsec = [2*a for a in theory_xsec]
+
+theory_xsec = [2*a for a in theory_xsec] # multiplying 50% tW by 2 to become 100% tW
 
 print('Theory xsec = ',theory_xsec)
 #theory_xsec_up = [item/1000 for item in xsecErrUp]
@@ -244,15 +248,16 @@ def PlotLimits(limitDir,limitFile,tempKey):
     prelimTex2.SetTextFont(61)
     prelimTex2.SetLineWidth(2)
     prelimTex2.SetTextSize(0.06)
-    prelimTex2.DrawLatex(0.12,0.93,"CMS")
+    #prelimTex2.DrawLatex(0.12,0.93,"CMS")
 
     prelimTex3 = TLatex()
     prelimTex3.SetNDC()
     prelimTex3.SetTextAlign(12)
-    prelimTex3.SetTextFont(52)
+    #prelimTex3.SetTextFont(52)
     prelimTex3.SetTextSize(0.045)
     prelimTex3.SetLineWidth(2)
-    prelimTex3.DrawLatex(0.23,0.945,"Simulation work in progress")
+    #prelimTex3.DrawLatex(0.23,0.945,"Simulation work in progress")
+    prelimTex3.DrawLatex(0.15,0.945,"Private Work (CMS Simulation)")
 
     #legend = TLegend(.55,.5,.89,.89) # good for BR of 1
     legend = TLegend(.55,.5,.89,.88,"95% CL upper limits") # mixes
