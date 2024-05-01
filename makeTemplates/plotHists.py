@@ -29,7 +29,7 @@ if len(sys.argv)>4: pfix=str(sys.argv[4])
 templateDir=os.getcwd()+'/'+pfix+'/'
 
 year = 'all'
-if len(sys.argv)>7: year=sys.argv[7]
+if len(sys.argv)>8: year=sys.argv[8]
 
 print('Plotting',region,'is categorized?',isCategorized,' for year',year)
 
@@ -40,7 +40,7 @@ if len(sys.argv)>7:
 saveKey = '' # tag for plot names
 
 datalabel = 'data_obs'
-shiftlist = ['__Up','__Dn']
+shiftlist = ['__Up','__Down']
 sig1='BpM1000' #  choose the 1st signal to plot
 sig1leg='B (1.0 TeV, 1 pb)'
 sig2='BpM1800' #  choose the 2nd signal to plot
@@ -60,6 +60,17 @@ if 'ABCDnn' in iPlot:
         systematicList = systListABCDnn
 else:
         systematicList = systListFull
+        if isRebinned: 
+                systematicList.remove('muR')
+                systematicList.remove('muF')
+                systematicList.remove('muRFcorrd')
+                systematicList.append('muRFcorrdNewQCD')
+                systematicList.append('muRFcorrdNewEWK')
+                systematicList.append('muRFcorrdNewST')
+                systematicList.append('muRFcorrdNewTTX')
+                systematicList.append('muRFcorrdNewTT')
+                systematicList.append('muRFcorrdNewWJT')
+
 
 bkgProcList = ['qcd',
                'ewk',

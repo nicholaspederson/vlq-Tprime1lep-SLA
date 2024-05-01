@@ -62,8 +62,8 @@ if len(sys.argv)>4: FullMu=bool(eval(sys.argv[4]))
 print("FullMu: "+str(FullMu))
 
 dataName = 'data_obs'
-upTag = '__Up'
-downTag = '__Down'
+upTag = 'Up'
+downTag = 'Down'
 sigName = 'Bp'
 
 addCRsys = False
@@ -71,8 +71,8 @@ addShapes = True
 lumiSys = math.sqrt(0.018**2) #lumi uncertainty plus higgs prop
 
 removalKeys = {} # True == keep, False == remove
-removalKeys['__muRecoSF'] = True
-removalKeys['__muR'] = False
+removalKeys['__muRUp'] = False
+removalKeys['__muRDown'] = False
 removalKeys['__muF'] = False
 if 'kinematics' not in folder: removalKeys['__muRFcorrd'] = False
 removalKeys['__pdf'] = False
@@ -238,6 +238,9 @@ for rfile in rfiles:
                 for hist in allhists[chn]:
                         rebinnedHists[hist] = tfiles[iRfile].Get(hist).Rebin(len(xbins[chn])-1,hist,xbins[chn])
                         rebinnedHists[hist].SetDirectory(0)
+                        if rebinnedHists[hist].Integral() < 1e-12: 
+                                print("Empty hist found, skipping: "+hist)
+                                continue
                         if '__pdf' in hist:
                                 if 'Up' not in hist or 'Down' not in hist: continue
                         if any([item in hist and not removalKeys[item] for item in removalKeys.keys()]): continue
@@ -277,6 +280,9 @@ for rfile in rfiles:
                                 rebinnedHists[hist.replace('muR'+upTag,'muRFcorrd'+upTag)],
                                 rebinnedHists[hist.replace('muR'+upTag,'muRFcorrd'+downTag)]
                         ]
+                        if histList[0].Integral() < 1e-6: 
+                                print("muRF: Empty hist found, skipping: "+hist)
+                                continue
                         for ibin in range(1,histList[0].GetNbinsX()+1):
                                 weightList = [histList[ind].GetBinContent(ibin) for ind in range(len(histList))]
                                 indCorrdUp = weightList.index(max(weightList))
@@ -292,7 +298,7 @@ for rfile in rfiles:
                                 #scalefactorDn = muSFsDn[signame]
                                 #muRFcorrdNewUpHist.Scale(scalefactorUp) #drop down .7   ### FIXME, NEED THIS FOR BPRIME
                                 #muRFcorrdNewDnHist.Scale(scalefactorDn) #raise up 1.3
-                                renormNomHist = tfiles[iRfile].Get(hist[:hist.find('__mu')]).Clone()
+                                renormNomHist = histList[0]
                                 muRFcorrdNewUpHist.Scale(renormNomHist.Integral()/muRFcorrdNewUpHist.Integral())
                                 muRFcorrdNewDnHist.Scale(renormNomHist.Integral()/muRFcorrdNewDnHist.Integral())
                         if ('__'+sigName not in hist and normalizeRENORM and not FullMu):
@@ -300,9 +306,9 @@ for rfile in rfiles:
                                 muRFcorrdNewUpHist.Scale(renormNomHist.Integral()/muRFcorrdNewUpHist.Integral())
                                 muRFcorrdNewDnHist.Scale(renormNomHist.Integral()/muRFcorrdNewDnHist.Integral())
                         muRFcorrdNewUpHist.Write()
-                        print('Writing histogram: '+muRFcorrdNewUpHist.GetName())
+                        #print('Writing histogram: '+muRFcorrdNewUpHist.GetName())
                         muRFcorrdNewDnHist.Write()
-                        print('Writing histogram: '+muRFcorrdNewDnHist.GetName())
+                        #print('Writing histogram: '+muRFcorrdNewDnHist.GetName())
 
                         yieldsAll[muRFcorrdNewUpHist.GetName().replace('_sig','_'+rfile.split('_')[-2])] = muRFcorrdNewUpHist.Integral()
                         yieldsAll[muRFcorrdNewDnHist.GetName().replace('_sig','_'+rfile.split('_')[-2])] = muRFcorrdNewDnHist.Integral()

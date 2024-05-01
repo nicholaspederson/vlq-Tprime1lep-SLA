@@ -96,11 +96,11 @@ Check status with `condor_q` and similar commands. The output files, including c
 
 1. Edit doTemplates.py to set the region and prefix to match a set of plots. You can also control the samples and uncertainties that are processed (e.g. you can ignore some samples or uncertainties that were created in the condor job). This script converts pickle files to ROOT files and write a latex-formatted yield table.
 
-2. Edit modifyBinning.py (**Note: not updated yet for BtoTW**) to control binning and add certain uncertainties. This script is important for uncertainties that are defined based on looking at the final bin contents of some histogram and doing operations on them -- notably PDF and Scale uncertainties. Edit runRebinning.sh to rebin multiple plots
+2. Edit modifyBinning.py to control binning and add certain uncertainties. This script is important for uncertainties that are defined based on looking at the final bin contents of some histogram and doing operations on them -- notably PDF and Scale uncertainties. Edit runRebinning.sh to rebin multiple plots
 
 3. python3 -u doTemplates.py
 
-(4. sh runRebinning.sh) Later, when it's ready. Historically, the output of modifyBinning.py has been the set of ROOT files used for the Higgs Combine limit setting tool.
+4. python3 -u modifyBinning.py   (If the template directory, plotName, etc, are correct in this file, it can be run directly. runRebinning.sh is just a utility for changing these)
 
 ### Making plot images
 
@@ -110,7 +110,17 @@ Check status with `condor_q` and similar commands. The output files, including c
 
 ## Setting limits in `combineLimits`
 
-Write me!
+1. (FOR MAY 2024: ssh into cmslpc-sl7 for this!) Go to /uscms_data/d3/jmanagan/Combine1134/Combine_11_3_4 and "cmsenv". (Future: we need singularity / etc to get sl7 for COMBINE...)
+
+2. Go back to combineLimits/ but do not "cmsenv" again
+
+3. Edit dataCardCombine.py: this script tells COMBINE which files to look for, which histograms to extract from the files, and which uncertainties to apply to which processes.
+
+4. python -u dataCardCombine.py
+
+5. python -u runLimits.py limits_my_path_created_by_dataCardCombine/ (this script has some options. For now it is set to do a straightforward blinded asymptotic limit on the original "workspace" from dataCardCombine.py)
+
+6. python -u PlotLimits.py limits_my_path_created_by_dataCardCombine/   (this script will read the .json file just created by runLimits.py and plot it along with the theory curve)
 
 ## Plotting individual uncertainty effects in `plotShapeShifts`
 
