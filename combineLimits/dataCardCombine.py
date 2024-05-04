@@ -16,7 +16,7 @@ import CombineHarvester.CombineTools.ch as ch
 #gROOT.SetBatch(1)
 
 fileDir = '/uscms_data/d3/jmanagan/BtoTW/CMSSW_12_4_8/src/vlq-BtoTW-SLA/makeTemplates/'
-template = 'templatesCD_Apr2024'
+template = 'templatesD_Oct2023Xiaohe'
 
 tag = 'Apr2024' ##Tag and saveKey are used for output directory names
 saveKey = '138fb'#tag+'_'+str(sys.argv[3])
@@ -42,8 +42,9 @@ def add_shapes(cb, prefix='Bp'):
 		#CRbkg_pattern = CRdiscrim+'_'+lumiStr+'_%s$BIN__$PROCESS' % chn
 		#CRsig_pattern = CRdiscrim+'_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
 
-                SRbkg_pattern = 'BpMass_'+lumiStr+'_%s$BIN__$PROCESS' % chn
-                SRsig_pattern = 'BpMass_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
+                SRbkg_pattern = discrim+'_'+lumiStr+'_%s$BIN__$PROCESS' % chn
+                SRsig_pattern = discrim+'_'+lumiStr+'_%s$BIN__$PROCESS$MASS' % chn
+                        
 
 		#if 'isCR' in chn: 
 		#	cb.cp().channel([chn]).era([era]).backgrounds().ExtractShapes(rfile, CRbkg_pattern, CRbkg_pattern + '__$SYSTEMATIC')
@@ -75,10 +76,10 @@ def print_cb(cb):
 		print()
 
 
-def add_systematics(cb, isABCDnn):
+def add_systematics(cb):
         print('------------------------------------------------------------------------')
         print('>> Adding systematic uncertainties...')
-        print('>> Using ABCDnn? '+isABCDnn)
+        print('>> Using ABCDnn? '+str(isABCDnn))
 
         signal = cb.cp().signals().process_set()
 
@@ -94,14 +95,14 @@ def add_systematics(cb, isABCDnn):
                 cb.cp().process([allbkgs[0]]).channel(chns).AddSyst(cb, 'peak', 'shape', ch.SystMap()(1.0))
                 cb.cp().process([allbkgs[0]]).channel(chns).AddSyst(cb, 'tail', 'shape', ch.SystMap()(1.0))
                 cb.cp().process([allbkgs[0]]).channel(chns).AddSyst(cb, 'closure', 'shape', ch.SystMap()(1.0))
-                cb.cp().process([allbkgs[0]]).channel(chns1).AddSyst(cb, 'abdcyield1', 'lnN', ch.SystMap()(1.085)) #FIXME
-                cb.cp().process([allbkgs[0]]).channel(chns2).AddSyst(cb, 'abdcyield2', 'lnN', ch.SystMap()(1.085)) #FIXME
-                cb.cp().process([allbkgs[0]]).channel(chns3).AddSyst(cb, 'abdcyield3', 'lnN', ch.SystMap()(1.085)) #FIXME
-                cb.cp().process([allbkgs[0]]).channel(chns4).AddSyst(cb, 'abdcyield4', 'lnN', ch.SystMap()(1.085)) #FIXME
+                cb.cp().process([allbkgs[0]]).channel(chns1).AddSyst(cb, 'abdcyield1', 'lnN', ch.SystMap()(1.079))
+                cb.cp().process([allbkgs[0]]).channel(chns2).AddSyst(cb, 'abdcyield2', 'lnN', ch.SystMap()(1.062))
+                cb.cp().process([allbkgs[0]]).channel(chns3).AddSyst(cb, 'abdcyield3', 'lnN', ch.SystMap()(1.081))
+                cb.cp().process([allbkgs[0]]).channel(chns4).AddSyst(cb, 'abdcyield4', 'lnN', ch.SystMap()(1.018))
 
         allmcgrps = signal + allbkgs
         if isABCDnn:
-                allmcgrps = sigmal + [allbkgs[1]] + [allbkgs[2]]
+                allmcgrps = signal + [allbkgs[1]] + [allbkgs[2]]
 
         ## https://twiki.cern.ch/twiki/bin/view/CMS/TWikiLUM#CurRec
         cb.cp().process(allmcgrps).channel(chns).AddSyst(cb, 'lumi', 'lnN', ch.SystMap()(1.018))
@@ -177,11 +178,13 @@ def add_systematics(cb, isABCDnn):
                 cb.cp().process([allbkgs[2]]).channel(chns).AddSyst(cb, 'muRFcorrdNewST', 'shape', ch.SystMap()(1.0))
                 cb.cp().process([allbkgs[5]]).channel(chns).AddSyst(cb, 'muRFcorrdNewQCD', 'shape', ch.SystMap()(1.0))
 
-        ttxgrp = [allbkgs[3]]
-        ewkgrp = [allbkgs[4]]
         if isABCDnn:
                 ttxgrp = [allbkgs[1]]
                 ewkgrp = [allbkgs[2]]
+        else:
+                ttxgrp = [allbkgs[3]]
+                ewkgrp = [allbkgs[4]]
+        
         cb.cp().process(ttxgrp).channel(chns).AddSyst(cb, 'muRFcorrdNewTTX', 'shape', ch.SystMap()(1.0))
         cb.cp().process(ewkgrp).channel(chns).AddSyst(cb, 'muRFcorrdNewEWK', 'shape', ch.SystMap()(1.0))
         cb.cp().process(signal).channel(chns).AddSyst(cb, 'muRFcorrdNewSIG', 'shape', ch.SystMap()(1.0))
@@ -235,12 +238,12 @@ if __name__ == '__main__':
 
         if not os.path.exists('./limits_'+template+saveKey): os.system('mkdir -p ./limits_'+template+saveKey+'/')
 
-        discrim = 'BpMass'
+        discrim = 'BpMass_ABCDnn'
         isABCDnn = False
         if 'ABCDnn' in discrim:
                 isABCDnn = True
 
-        rfile = fileDir+template+'/templates_'+discrim+'_138fb_rebinned_stat0p2.root'
+        rfile = fileDir+template+'/templates_'+discrim+'_138fbfb_rebinned_stat0p2.root'
         os.system('cp '+rfile+' ./limits_'+template+saveKey+'/')
 
         print('File: ',rfile)
