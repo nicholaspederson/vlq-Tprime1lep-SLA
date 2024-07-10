@@ -62,88 +62,92 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
         'MET'   :('corrMET_pt',linspace(0, 1000, 51).tolist(),';#slash{E}_{T} [GeV]'),
         'METphi':('corrMET_phi',linspace(-3.2,3.2, 65).tolist(),';#slash{E}_{T} phi'),
         'HT':('gcJet_HT',linspace(0, 5000, 51).tolist(),';H_{T} (GeV)'),
-        'ST':('gcJet_ST',linspace(0, 5000, 51).tolist(),';S_{T} (GeV)'),
         'JetEta':('gcJet_eta',linspace(-3, 3, 41).tolist(),';central AK4 jet #eta'),
         'JetPt' :('gcJet_pt',linspace(0, 1500, 51).tolist(),';central AK4 jet p_{T} [GeV]'),
         'JetPhi':('gcJet_phi',linspace(-3.2,3.2, 65).tolist(),';central AK4 jet phi'),
-        'JetBtag':('gcJet_DeepFlav',linspace(0,1,51).tolist(),';central AK4 jet DeepJet disc'),
-        'ForwJetEta':('gcforwJet_eta',linspace(-3, 3, 41).tolist(),';forward AK4 jet #eta'),
-        'ForwJetPt' :('gcforwJet_pt',linspace(0, 1500, 51).tolist(),';forward AK4 jet p_{T} [GeV]'),
-        'ForwJetPhi':('gcforwJet_phi',linspace(-3.2,3.2, 65).tolist(),';forward AK4 jet phi'),
         'FatJetEta':('gcFatJet_eta',linspace(-3, 3, 41).tolist(),';AK8 jet #eta'),
         'FatJetPt' :('gcFatJet_pt',linspace(0, 1500, 51).tolist(),';AK8 jet p_{T} [GeV]'),
         'FatJetPhi':('gcFatJet_phi',linspace(-3.2,3.2, 65).tolist(),';AK8 jet phi'),
         'FatJetSD' :('gcFatJet_sdmass',linspace(0, 500, 51).tolist(),';AK8 soft drop mass [GeV]'),
-        'FatJetMatch':('gcFatJet_genmatch',linspace(-24,24,49).tolist(),';AK8 gen match ID'),
-        'OS1FatJetEta':('gcOSFatJet_eta[0]',linspace(-3, 3, 41).tolist(),';B decay AK8 #eta'),
-        'OS1FatJetPt' :('gcOSFatJet_pt[0]',linspace(0, 1500, 51).tolist(),';B decay AK8 p_{T} [GeV]'),
-        'OS1FatJetPhi':('gcOSFatJet_phi[0]',linspace(-3.2,3.2, 65).tolist(),';B decay AK8 phi'),
-        'OS1FatJetSD' :('gcOSFatJet_sdmass[0]',linspace(0, 500, 51).tolist(),';B decay AK8 soft drop mass [GeV]'),
-        'NJetsCentral' :('NJets_central',linspace(0, 10, 11).tolist(),';central AK4 jet multiplicity'),
-        'NJetsForward' :('NJets_forward',linspace(0, 10, 11).tolist(),';forward AK4 jet multiplicity'),
-        'NBJets':('NJets_DeepFlavL',linspace(0, 10, 11).tolist(),';DeepJet loose multiplicity'),
-        'NOSJets':('NOS_gcJets_central',linspace(0, 5, 6).tolist(),';central AK4 opp-side jets'),
-        'NSSJets':('NSS_gcJets_central',linspace(0, 5, 6).tolist(),';central AK4 same-side jets'),
-        'NOSBJets':('NOS_gcJets_DeepFlavL',linspace(0, 5, 6).tolist(),';central AK4 opp-side b jets'),
-        'NSSBJets':('NSS_gcJets_DeepFlavL',linspace(0, 5, 6).tolist(),';central AK4 same-side b jets'),
         'NFatJets':('NFatJets',linspace(0, 10, 11).tolist(),';AK8 jet multiplicity'),
-        'NOSFatJets':('NOS_gcFatJets',linspace(0, 5, 6).tolist(),';AK8 opp-side jets'),
-        'NSSFatJets':('NSS_gcFatJets',linspace(0, 5, 6).tolist(),';AK8 same-side jets'),
-        'minDR_twoAK8s':('minDR_leadAK8otherAK8',linspace(0,5,51).tolist(),';min #Delta R(leading AK8 jet, other AK8 jet) [GeV]'),
-        'minDR_twoAK4s':('minDR_leadAK4otherAK4',linspace(0,5,51).tolist(),';min #Delta R(leading AK4 jet, other AK4 jet) [GeV]'),
-        'PtRel':('ptRel_atMinDR_lepJets',linspace(0,500,51).tolist(),';p_{T,rel}(l, closest jet) [GeV]'),
-        'PtRelAK8':('ptRel_atMinDR_lepFatJets',linspace(0,500,51).tolist(),';p_{T,rel}(l, closest AK8 jet) [GeV]'),
-        'minDR':('minDR_lepJets',linspace(0,5,51).tolist(),';#Delta R(l, closest jet) [GeV]'),
-        'minDRAK8':('minDR_lepFatJets',linspace(0,5,51).tolist(),';#Delta R(l, closest AK8 jet) [GeV]'),
-        'FatJetTau21'  :('gcFatJet_tau21',linspace(0, 1, 51).tolist(),';AK8 Jet #tau_{2}/#tau_{1}'),
-        'FatJetTau32'  :('gcFatJet_tau32',linspace(0, 1, 51).tolist(),';AK8 Jet #tau_{3}/#tau_{2}'),
-        'OS1FatJetTau21'  :('gcOSFatJet_tau21[0]',linspace(0, 1, 51).tolist(),';B decay AK8 #tau_{2}/#tau_{1}'),
-        'OS1FatJetTau32'  :('gcOSFatJet_tau32[0]',linspace(0, 1, 51).tolist(),';B decay AK8 #tau_{3}/#tau_{2}'),
-        'FatJetProbJ':('gcFatJet_pNetJ',linspace(0,1.2,51).tolist(),';pNet J score'),
-        'FatJetProbT':('gcFatJet_pNetT',linspace(0,1.2,51).tolist(),';pNet t score'),
-        'FatJetProbW':('gcFatJet_pNetW',linspace(0,1.2,51).tolist(),';pNet W score'),
-        'FatJetProbTvJ':('gcFatJet_pNetTvsQCD',linspace(0,1.2,51).tolist(),';pNet t-v-QCD score'),
-        'FatJetProbWvJ':('gcFatJet_pNetWvsQCD',linspace(0,1.2,51).tolist(),';pNet W-v-QCD score'),
-        'FatJetTag':('gcFatJet_pNetTag',linspace(0,3,4).tolist(),';pNet tag (0 = J, 1 = t, 2 = W)'),
-        'OS1FatJetProbJ':('gcOSFatJet_pNetJ[0]',linspace(0,1.2,51).tolist(),';B decay AK8 pNet J score'),
-        'OS1FatJetProbT':('gcOSFatJet_pNetT[0]',linspace(0,1.2,51).tolist(),';B decay AK8 pNet t score'),
-        'OS1FatJetProbW':('gcOSFatJet_pNetW[0]',linspace(0,1.2,51).tolist(),';B decay AK8 pNet W score'),
-        'OS1FatJetProbTvJ':('gcOSFatJet_pNetTvsQCD[0]',linspace(0,1.2,51).tolist(),';B decay AK8 pNet t-v-QCD score'),
-        'OS1FatJetProbWvJ':('gcOSFatJet_pNetWvsQCD[0]',linspace(0,1.2,51).tolist(),';B decay AK8 pNet W-v-QCD score'),
-        'OS1FatJetTag':('gcOSFatJet_pNetTag[0]',linspace(0,3,4).tolist(),';B decay AK8 pNet tag (0 = J, 1 = t, 2 = W)'),
-        'nT':('gcFatJet_nT',linspace(0,5,6).tolist(),';N pNet t-tagged jets'),
-        'nW':('gcFatJet_nW',linspace(0,5,6).tolist(),';N pNet W-tagged jets'),
-        'Wmass':('W_mass',linspace(0,500,51).tolist(),';reco W mass [GeV]'),
-        'Wpt':('W_pt',linspace(0,1500,51).tolist(),';reco W pt [GeV]'),
-        'Weta':('W_eta',linspace(-4,4,41).tolist(),';reco W eta'),
-        'Wphi':('W_phi',linspace(-3.2,3.2, 65).tolist(),';reco W phi'),
-        'WMt':('W_MT',linspace(0,500,51).tolist(),';reco W M_{T} [GeV]'),
-        'Wdrlep':('DR_W_lep',linspace(0,5,51).tolist(),';reco W #DeltaR(W,lepton)'),        
-        'minMlj':('minM_lep_Jet',linspace(0,1000,51).tolist(),';min[M(l,jet)] [GeV]'),
-        'tmassMLJ':('t_mass_minMlj',linspace(0,500,51).tolist(),';reco t mass (minMlj method) [GeV]'),
-        'tptMLJ':('t_pt_minMlj',linspace(0,1000,51).tolist(),';reco t pt (minMlj method) [GeV]'),
-        'tetaMLJ':('t_eta_minMlj',linspace(-4,4,41).tolist(),';reco t eta (minMlj method)'),
-        'tphiMLJ':('t_phi_minMlj',linspace(-3.2,3.2, 65).tolist(),';reco t phi (minMlj method)'),
-        'tmassSSB':('t_mass_SSb',linspace(0,500,51).tolist(),';reco t mass (SSb method) [GeV]'),
-        'tptSSB':('t_pt_SSb',linspace(0,1000,51).tolist(),';reco t pt (SSb method) [GeV]'),
-        'tetaSSB':('t_eta_SSb',linspace(-4,4,41).tolist(),';reco t eta (SSb method)'),
-        'tphiSSB':('t_phi_SSb',linspace(-3.2,3.2, 65).tolist(),';reco t phi (SSb method)'),
-        'tdrWbMLJ':('DR_W_b_minMlj',linspace(0,6.3,51).tolist(),';reco t, #DeltaR(W,b) (minMlj method)'),
-        'tdrWbSSB':('DR_W_b_SSb',linspace(0,6.3,51).tolist(),';reco t, #DeltaR(W,b) (SSb method)'),
-        'BpMass':('Bprime_mass',linspace(0,4000,51).tolist(),';B quark mass [GeV]'),
-        'BpPt':('Bprime_pt',linspace(0,3000,51).tolist(),';B quark p_{T} [GeV]'),
-        'BpEta':('Bprime_eta',linspace(-5,5,51).tolist(),';B quark #eta'),
-        'BpPhi':('Bprime_phi',linspace(-3.14,3.14,51).tolist(),';B quark #phi'),
-        'BpDeltaR':('Bprime_DR',linspace(0,5,51).tolist(),';#DeltaR(B quark products)'),
-        'BpPtBal':('Bprime_ptbal',linspace(0,3,51).tolist(),';B quark t/W p_{T} ratio'),
-        'BpChi2':('Bprime_chi2',linspace(0,1000,51).tolist(),';B quark reconstruction #chi^{2}'), # CHECK ME, what range?
-        'BpDecay':('Bdecay_obs',linspace(0,5,6).tolist(),';B quark mode (1: Tjet+lepW, 2: Wjet+lepT, 3: AK8+lepW, 4: AK8+lepT')
+        'TTbarMass'	:('R_TTbar_Mass',linspace(100, 1000, 7000).tolist(),';TTbar Mass (GeV);N counts'),
+        'TTbarAngleCos'	:('R_TTbar_CosAngle',linspace(25, -1.25, 1.25).tolist(),';TTbar decay angle (Radians);N counts'),
+        'TTbarAngleDeltaPhi'	:('R_TTbar_DeltaPhiAngle',linspace(50, 0, 3.14).tolist(),';TTbar delta phi decay angle (Radians);N counts'),
+        'TTbarPtLAB'	:('R_TTbar_4VectLAB.Pt()',linspace(100, 0, 2000).tolist(),';TTbar (Lab) P_{t} (GeV/c);N counts'),
+        'TTbarEtaLAB'	:('R_TTbar_4VectLAB.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';TTbar (Lab) Eta (Radians);N counts'),
+
+        'TMass'	:('R_T_Mass',linspace(100, 0, 4000).tolist(),';T Mass (GeV);N counts'),
+        'TAngleCos'	:('R_T_CosAngle',linspace(25, -1.25, 1.25).tolist(),';T decay angle (Radians);N counts'), 
+        'TAngleDeltaPhi'	:('R_T_DeltaPhiAngle',linspace(50, 0, 3.14).tolist(),';T delta phi decay angle (Radians);N counts'),
+        'TPtLAB'	:('R_T_4VectLAB.Pt()',linspace(100, 0, 4000).tolist(),';T (Lab) P_{t} (GeV/c);N counts'),
+        'TEtaLAB'	:('R_T_4VectLAB.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';T (Lab) Eta (Radians);N counts'),
+        'TPtTTbar'	:('R_T_4VectTTbar.Pt()',linspace(100, 0, 4000).tolist(),';T (TTbar) P_{t} (GeV/c);N counts'),
+        'TEtaTTbar'	:('R_T_4VectTTbar.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';T (TTbar) Eta (Radians);N counts'),
+
+        'TbarMass'	:('R_Tbar_Mass',linspace(100, 0, 4000).tolist(),';Tbar Mass (GeV);N counts'),
+        'TbarAngleCos'	:('R_Tbar_CosAngle',linspace(25, -1.25, 1.25).tolist(),';Tbar decay angle (Radians);N counts'),
+        'TbarAngleDeltaPhi'	:('R_Tbar_DeltaPhiAngle',linspace(50, 0, 3.14).tolist(),';Tbar delta phi decay angle (Radians);N counts'),
+        'TbarPt'	:('R_Tbar_4VectLAB.Pt()',linspace(100, 0, 4000).tolist(),';Tbar (Lab) P_{t} (GeV/c);N counts'),
+        'TbarEta'	:('R_Tbar_4VectLAB.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';Tbar (Lab) Eta (Radians);N counts'),
+        'TbarPtTTbar'	:('R_Tbar_4VectTTbar.Pt()',linspace(100, 0, 4000).tolist(),';Tbar (TTbar) P_{t} (GeV/c);N counts'),
+        'TbarEtaTTbar'	:('R_Tbar_4VectTTbar.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';Tbar (TTbar) Eta (Radians);N counts'),
+
+        'WMass'	:('R_W_Mass',linspace(100, 0, 2000).tolist(),';W Mass (GeV);N counts'),
+        'WAngleCos'	:('R_W_CosAngle',linspace(25, -1.25, 1.25).tolist(),';W decay angle (Radians);N counts'),
+        'WAngleDeltaPhi'	:('R_W_DeltaPhiAngle',linspace(50, 0, 3.14).tolist(),';W delta phi decay angle (Radians);N counts'),
+        'WPtLAB'	:('R_W_4VectLAB.Pt()',linspace(100, 0, 2000).tolist(),';W (Lab) P_{t} (GeV/c);N counts'),
+        'WEtaLAB'	:('R_W_4VectLAB.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';W (Lab) Eta (Radians);N counts'),
+        'WPtTTbar'	:('R_W_4VectTTbar.Pt()',linspace(100, 0, 2000).tolist(),';W (TTbar) P_{t} (GeV/c);N counts'),
+        'WEtaTTbar'	:('R_W_4VectTTbar.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';W (TTbar) Eta (Radians);N counts'),
+        'WPtT'	:('R_W_4VectT.Pt()',linspace(100, 0, 2000).tolist(),';W (T) P_{t} (GeV/c);N counts'),
+        'WEtaT'	:('R_W_4VectT.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';W (T) Eta (Radians);N counts'),
+
+        'bMass'	:('R_b_Mass',linspace(100, 0, 1000).tolist(),';b Mass (GeV);N counts'),
+        'bAngleCos'	:('R_b_CosAngle',linspace(25, -1.25, 1.25).tolist(),';b decay angle (Radians);N counts'),
+        'bPtLAB'	:('R_b_4VectLAB.Pt()',linspace(100, 0, 2000).tolist(),';b (Lab) P_{t} (GeV/c);N counts'),
+        'bEtaLAB'	:('R_b_4VectLAB.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';b (Lab) Eta (Radians);N counts'),
+        'bPtTTbar'	:('R_b_4VectTTbar.Pt()',linspace(100, 0, 2000).tolist(),';b (TTbar) P_{t} (GeV/c);N counts'),
+        'bEtaTTbar'	:('R_b_4VectTTbar.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';b (TTbar) Eta (Radians);N counts'),
+        'bPtT'	:('R_b_4VectT.Pt()',linspace(100, 0, 2000).tolist(),';b (T) P_{t} (GeV/c);N counts'),
+        'bEtaT'	:('R_b_4VectT.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';b (T) Eta (Radians);N counts'),
+
+        'lMass'	:('R_l_Mass',linspace(50, -0.4, 0.4).tolist(),';#it{l} Mass (GeV);N counts'),
+        'lAngleCos'	:('R_l_CosAngle',linspace(25, -1.25, 1.25).tolist(),';#it{l} decay angle (Radians);N counts'),
+        'lPtLAB'	:('R_l_4VectLAB.Pt()',linspace(100, 0, 2000).tolist(),';#it{l} (Lab) P_{t} (GeV/c);N counts'),
+        'lEtaLAB'	:('R_l_4VectLAB.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#it{l} (Lab) Eta (Radians);N counts'),
+        'lPtTTbar'	:('R_l_4VectTTbar.Pt()',linspace(100, 0, 2000).tolist(),';#it{l} (TTbar) P_{t} (GeV/c);N counts'),
+        'lEtaTTbar'	:('R_l_4VectTTbar.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#it{l} (TTbar) Eta (Radians);N counts'),
+        'lPtT'	:('R_l_4VectT.Pt()',linspace(100, 0, 2000).tolist(),';#it{l} (T) P_{t} (GeV/c);N counts'),
+        'lEtaT'	:('R_l_4VectT.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#it{l} (T) Eta (Radians);N counts'),
+        'lPtW'	:('R_l_4VectW.Pt()',linspace(100, 0, 2000).tolist(),';#it{l} (W) P_{t} (GeV/c);N counts'),
+        'lEtaW'	:('R_l_4VectW.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#it{l} (W) Eta (Radians);N counts'),
+
+        'nuMass'	:('R_Nu_Mass',linspace(50, 0, 1*10^(-15)).tolist(),';#nu Mass (GeV);N counts'),
+        'nuAngleCos'	:('R_Nu_CosAngle',linspace(25, -1.25, 1.25).tolist(),';#nu decay angle (Radians);N counts'),
+        'nuPtLAB'	:('R_Nu_4VectLAB.Pt()',linspace(100, 0, 2000).tolist(),';#nu (Lab) P_{t} (GeV/c);N counts'),
+        'nuEtaLAB'	:('R_Nu_4VectLAB.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#nu (Lab) Eta (Radians);N counts'),
+        'nuPtTTbar'	:('R_Nu_4VectTTbar.Pt()',linspace(100, 0, 2000).tolist(),';#nu (TTbar) P_{t} (GeV/c);N counts'),
+        'nuEtaTTbar'	:('R_Nu_4VectTTbar.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#nu (TTbar) Eta (Radians);N counts'),
+        'nuPtT'	:('R_Nu_4VectT.Pt()',linspace(100, 0, 2000).tolist(),';#nu (T) P_{t} (GeV/c);N counts'),
+        'nuEtaT'	:('R_Nu_4VectT.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#nu (T) Eta (Radians);N counts'),
+        'nuPtW'	:('R_Nu_4VectW.Pt()',linspace(100, 0, 2000).tolist(),';#nu (W) P_{t} (GeV/c);N counts'),
+        'nuEtaW'	:('R_Nu_4VectW.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#nu (W) Eta (Radians);N counts')
+
+# Dictionary for 2D plots to see if there is any correlations?
+'''
+        'WCos_DeltaPhi'	:('R_W_DeltaPhiAngle:R_W_CosAngle',linspace(25, -1.25, 1.25, 50, 0, 3.14)';W Cos Decay Angle (Radians);W Delta Phi Decay Angle (Radians).tolist(),'), #in the draw command it is 'y:x'
+        'TTbarCos_DeltaPhi'	:('R_TTbar_DeltaPhiAngle:R_TTbar_CosAngle', linspace(25, -1.25, 1.25, 50, 0, 3.14)';TTbar Cos Decay Angle (Radians);TTbar Delta Phi Decay Angle (Radians).tolist(),'), 
+        'TbarMass_TMass'	:('R_T_Mass:R_Tbar_Mass',linspace(100, 0, 4000, 100, 0, 4000)';Tbar Mass (GeV);T Mass (GeV).tolist(),'),
+        'TbarMass_TTbarAngleCos'	:('R_TTbar_CosAngle:R_Tbar_Mass',linspace(100, 0, 4000,  25, -1.25, 1.25)';Tbar Mass (GeV);TTbar Cos Decay Angle (Radians).tolist(),'),
+        'TbarMass_TTbarAngleDeltaPhi'	:('R_TTbar_DeltaPhiAngle:R_Tbar_Mass',linspace(100, 0, 4000, 50, 0, 3.14)';Tbar Mass (GeV);TTbar Delta Phi Decay Angle (Radians).tolist(),'),
+        'TMass_WAngleCos'	:('R_W_CosAngle:R_T_Mass',linspace(100, 0, 4000,  25, -1.25, 1.25)';T Mass (GeV);W Cos Decay Angle (Radians).tolist(),'),
+'''
 }
 
 print( "PLOTTING: "+iPlot)
-print( "         LJMET Variable: "+plotList[iPlot][0])
-print( "         X-AXIS TITLE  : "+plotList[iPlot][2])
-print( "         BINNING USED  : "+str(plotList[iPlot][1]))
+print( "         LJMET Variable: "+        iPlot][0])
+print( "         X-AXIS TITLE  : "+        iPlot][2])
+print( "         BINNING USED  : "+str(        iPlot][1]))
 
 shapesFiles = ['jec','jer']
 tTreeData = {}
@@ -175,7 +179,7 @@ for cat in catList:
 
                 ### For analyze_RDF make the switch here (and similar regions below)
                 ### Could "datahists" now be "updated" with more histptrs instead of hists? 
-                datahists.update(analyze(tTreeData,samples_data[data],False,iPlot,plotList[iPlot],category,region,isCategorized))
+                datahists.update(analyze(tTreeData,samples_data[data],False,iPlot,        iPlot],category,region,isCategorized))
                 if catInd==nCats: 
                         print('deleting '+data)
                         del tTreeData[data]  
@@ -200,7 +204,7 @@ for cat in catList:
                                         for ud in ['Up','Dn']:
                                                 print("        "+syst+ud)
                                                 tTreeBkg[bkg+syst+ud]=readTreeShift(fileprefix,bkgGrp[bkg].year,syst.upper()+ud.lower(),step1Dir) ## located in utils.py
-                        bkghists.update(analyze(tTreeBkg,bkgGrp[bkg],doAllSys,iPlot,plotList[iPlot],category,region,isCategorized))
+                        bkghists.update(analyze(tTreeBkg,bkgGrp[bkg],doAllSys,iPlot,        iPlot],category,region,isCategorized))
                         if catInd==nCats:
                                 print('deleting '+bkg)
                                 del tTreeBkg[bkg]
@@ -224,7 +228,7 @@ for cat in catList:
                                 for ud in ['Up','Dn']:
                                         print("        "+syst+ud)
                                         tTreeSig[sig+syst+ud]=readTreeShift(fileprefix,samples_signal[sig].year,syst.upper()+ud.lower(),step1Dir)
-                sighists.update(analyze(tTreeSig,samples_signal[sig],doAllSys,iPlot,plotList[iPlot],category,region,isCategorized))
+                sighists.update(analyze(tTreeSig,samples_signal[sig],doAllSys,iPlot,        iPlot],category,region,isCategorized))
                 if catInd==nCats: 
                         print('deleting '+sig)
                         del tTreeSig[sig]
