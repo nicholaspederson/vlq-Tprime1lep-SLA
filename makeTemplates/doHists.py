@@ -110,7 +110,7 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
         'bEtaTTbar'	:('R_b_4VectTTbar.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';b (TTbar) Eta (Radians);N counts'),
         'bPtT'	:('R_b_4VectT.Pt()',linspace(100, 0, 2000).tolist(),';b (T) P_{t} (GeV/c);N counts'),
         'bEtaT'	:('R_b_4VectT.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';b (T) Eta (Radians);N counts'),
-
+'''
         'lMass'	:('R_l_Mass',linspace(50, -0.4, 0.4).tolist(),';#it{l} Mass (GeV);N counts'),
         'lAngleCos'	:('R_l_CosAngle',linspace(25, -1.25, 1.25).tolist(),';#it{l} decay angle (Radians);N counts'),
         'lPtLAB'	:('R_l_4VectLAB.Pt()',linspace(100, 0, 2000).tolist(),';#it{l} (Lab) P_{t} (GeV/c);N counts'),
@@ -132,7 +132,7 @@ plotList = {#discriminantName:(discriminantLJMETName, binning, xAxisLabel)
         'nuEtaT'	:('R_Nu_4VectT.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#nu (T) Eta (Radians);N counts'),
         'nuPtW'	:('R_Nu_4VectW.Pt()',linspace(100, 0, 2000).tolist(),';#nu (W) P_{t} (GeV/c);N counts'),
         'nuEtaW'	:('R_Nu_4VectW.Eta()',linspace(100, -2*3.14, 2*3.14).tolist(),';#nu (W) Eta (Radians);N counts')
-
+'''
 # Dictionary for 2D plots to see if there is any correlations?
 '''
         'WCos_DeltaPhi'	:('R_W_DeltaPhiAngle:R_W_CosAngle',linspace(25, -1.25, 1.25, 50, 0, 3.14)';W Cos Decay Angle (Radians);W Delta Phi Decay Angle (Radians).tolist(),'), #in the draw command it is 'y:x'
